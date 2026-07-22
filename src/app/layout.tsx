@@ -29,7 +29,10 @@ export default function RootLayout({
             <CustomCursor />
             <ScrollProgress />
             <div className="noise-overlay" />
-            {children}
+            {/* Add top padding when running in Electron to account for title bar */}
+            <div className="electron-content-wrapper">
+              {children}
+            </div>
           </AppProviders>
         </AuthProvider>
         <Script

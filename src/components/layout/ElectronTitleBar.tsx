@@ -21,15 +21,24 @@ declare global {
 export default function ElectronTitleBar() {
   const [isMaximized, setIsMaximized] = useState(false)
   const [version, setVersion] = useState('')
-  const isElectron = typeof window !== 'undefined' && window.electronAPI?.isElectron
+  const [isElectron, setIsElectron] = useState(false)
 
   useEffect(() => {
-    if (!isElectron) return
+    const electronDetected = typeof window !== 'undefined' && window.electronAPI?.isElectron
+    setIsElectron(electronDetected)
     
-    window.electronAPI?.isMaximized().then(setIsMaximized)
-    window.electronAPI?.onMaximizeChange(setIsMaximized)
-    window.electronAPI?.getVersion().then(setVersion)
-  }, [isElectron])
+    // Add class to body for Electron-specific styling
+    if (electronDetected) {
+      document.body.classList.add('electron-mode')
+      window.electronAPI?.isMaximized().then(setIsMaximized)
+      window.electronAPI?.onMaximizeChange(setIsMaximized)
+      window.electronAPI?.getVersion().then(setVersion)
+    }
+    
+    return () => {
+      document.body.classList.remove('electron-mode')
+    }
+  }, [])
 
   if (!isElectron) return null
 

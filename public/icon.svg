@@ -1,0 +1,23 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6"/>
+      <stop offset="100%" style="stop-color:#8b5cf6"/>
+    </linearGradient>
+    <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff"/>
+      <stop offset="100%" style="stop-color:#e0e0e0"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="512" height="512" rx="102" fill="url(#bgGradient)"/>
+  <!-- Code bracket icon -->
+  <g transform="translate(100, 130)">
+    <!-- Left bracket < -->
+    <path d="M80 50 L20 130 L80 210" stroke="url(#iconGradient)" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <!-- Right bracket > -->
+    <path d="M232 50 L292 130 L232 210" stroke="url(#iconGradient)" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <!-- Slash / -->
+    <path d="M190 20 L130 240" stroke="url(#iconGradient)" stroke-width="24" stroke-linecap="round" fill="none"/>
+  </g>
+</svg>

@@ -35,6 +35,25 @@ contextBridge.exposeInMainWorld('electronAPI', {
   
   // Updater
   checkForUpdates: () => ipcRenderer.invoke('updater:check'),
+  downloadUpdate: () => ipcRenderer.invoke('updater:download'),
+  installUpdate: () => ipcRenderer.invoke('updater:install'),
+  
+  // Listen for updater events
+  onUpdateAvailable: (callback) => {
+    ipcRenderer.on('updater:update-available', (_, info) => callback(info))
+  },
+  onUpdateNotAvailable: (callback) => {
+    ipcRenderer.on('updater:update-not-available', (_, info) => callback(info))
+  },
+  onUpdateError: (callback) => {
+    ipcRenderer.on('updater:error', (_, err) => callback(err))
+  },
+  onDownloadProgress: (callback) => {
+    ipcRenderer.on('updater:download-progress', (_, progress) => callback(progress))
+  },
+  onUpdateDownloaded: (callback) => {
+    ipcRenderer.on('updater:update-downloaded', (_, info) => callback(info))
+  },
   
   // Listen for maximize changes
   onMaximizeChange: (callback) => {

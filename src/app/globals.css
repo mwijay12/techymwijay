@@ -418,3 +418,38 @@
   z-index: 1;
   transition: opacity 0.3s ease;
 }
+
+/* Electron-specific styles */
+/* When running in Electron, add padding-top to account for the custom title bar */
+.electron-content-wrapper {
+  padding-top: 0;
+}
+
+/* This class is added via JS when Electron is detected */
+body.electron-mode .electron-content-wrapper {
+  padding-top: 40px;
+}
+
+/* Adjust Navigation for Electron mode */
+body.electron-mode nav,
+body.electron-mode [class*="fixed top-0"] {
+  top: 40px !important;
+}
+
+/* Adjust scroll progress bar for Electron */
+body.electron-mode .scroll-progress {
+  top: 40px !important;
+}
+
+/* Ensure Electron title bar stays on top */
+.electron-titlebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  z-index: 99999;
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}

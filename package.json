@@ -2,6 +2,7 @@
   "name": "mwijay-tech",
   "version": "1.0.0",
   "description": "Mwijay Tech - AI Voice Studio Desktop App",
+  "author": "Mwijay Tech <mwijaytech@example.com>",
   "private": true,
   "main": "electron/main.js",
   "scripts": {
@@ -32,14 +33,14 @@
       "target": [
         "nsis"
       ],
-      "icon": "public/icon.png",
+      "icon": "public/icon.svg",
       "artifactName": "MwijayTech-Setup-${version}.${ext}"
     },
     "mac": {
       "target": [
         "dmg"
       ],
-      "icon": "public/icon.png",
+      "icon": "public/icon.svg",
       "artifactName": "MwijayTech-${version}.${ext}"
     },
     "linux": {
@@ -47,7 +48,7 @@
         "AppImage",
         "deb"
       ],
-      "icon": "public/icon.png",
+      "icon": "public/icon.svg",
       "artifactName": "MwijayTech-${version}.${ext}"
     },
     "nsis": {
@@ -56,6 +57,11 @@
       "createDesktopShortcut": true,
       "language": "1033"
     }
+  },
+  "publish": {
+    "provider": "github",
+    "owner": "mwijay12",
+    "repo": "techymwijay"
   },
   "dependencies": {
     "@number-flow/react": "^0.6.0",
@@ -67,6 +73,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "color-bits": "^1.1.1",
+    "electron-updater": "^6.8.9",
     "framer-motion": "^11.0.0",
     "lucide-react": "^0.344.0",
     "motion": "^12.40.0",
