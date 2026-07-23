@@ -1,132 +1,160 @@
 'use client'
 
 import { useState } from 'react'
-import { Eye, EyeOff, X, Key } from 'lucide-react'
+import { Eye, EyeOff, Copy, Check, Info } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface ApiKeyInputProps {
   label: string
-  description?: string
   value: string
   onChange: (value: string) => void
   placeholder?: string
-  providerColor?: string
-  /** Show a badge next to the label */
-  badge?: React.ReactNode
-  /** If true, the input shows a saved state preview */
-  isSaved?: boolean
+  hint?: string
+  isRequired?: boolean
+  keyCount?: number
+  isPoolMode?: boolean
+  className?: string
 }
 
-export default function ApiKeyInput({
+export function ApiKeyInput({
   label,
-  description,
   value,
   onChange,
-  placeholder = 'Enter API key...',
-  providerColor,
-  badge,
-  isSaved = false,
+  placeholder = 'sk-••••••••••••••••••••••',
+  hint,
+  isRequired = false,
+  keyCount,
+  isPoolMode = false,
+  className,
 }: ApiKeyInputProps) {
-  const [showKey, setShowKey] = useState(false)
-  const [isFocused, setIsFocused] = useState(false)
+  const [isVisible, setIsVisible] = useState(false)
+  const [isCopied, setIsCopied] = useState(false)
 
-  const hasValue = value.length > 0
-  const maskedValue = hasValue
-    ? `${value.slice(0, 4)}${'•'.repeat(Math.min(value.length - 8, 12))}${value.slice(-4)}`
-    : ''
+  const handleCopy = async () => {
+    if (!value) return
+    try {
+      await navigator.clipboard.writeText(value)
+      setIsCopied(true)
+      setTimeout(() => setIsCopied(false), 2000)
+    } catch {
+      console.warn('Copy failed')
+    }
+  }
+
+  if (isPoolMode && keyCount !== undefined) {
+    return (
+      <div className={cn('space-y-2', className)}>
+        <label className="flex items-center gap-2 text-sm font-medium text-gray-200">
+          {label}
+          {isRequired && <span className="text-red-400 text-xs">*</span>}
+        </label>
+
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/5 border border-white/10">
+          {keyCount > 0 ? (
+            <>
+              <div className="flex-1 flex items-center gap-2">
+                <div className="flex gap-0.5">
+                  {Array.from({ length: Math.min(keyCount, 8) }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="w-1.5 h-4 rounded-sm bg-purple-500/60"
+                      style={{ opacity: 1 - (i / Math.min(keyCount, 8)) * 0.3 }}
+                    />
+                  ))}
+                  {keyCount > 8 && (
+                    <span className="text-xs text-purple-400 ml-1 self-center font-bold">
+                      +{keyCount - 8}
+                    </span>
+                  )}
+                </div>
+                <span className="text-sm text-gray-300">
+                  {keyCount} {keyCount === 1 ? 'key' : 'keys'} loaded from{' '}
+                  <code className="text-purple-400 text-xs font-mono">.env.local</code>
+                </span>
+              </div>
+              <div className="flex-shrink-0 w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            </>
+          ) : (
+            <div className="flex items-center gap-2 text-gray-400 text-sm">
+              <Info className="w-4 h-4 text-gray-500" />
+              <span>
+                Add keys to{' '}
+                <code className="text-purple-400 text-xs font-mono">.env.local</code>
+                {' '}as{' '}
+                <code className="text-blue-400 text-xs font-mono">{label.toUpperCase().replace(/ /g, '_')}_API_KEYS</code>
+              </span>
+            </div>
+          )}
+        </div>
+
+        {hint && (
+          <p className="text-xs text-gray-400 flex items-start gap-1.5">
+            <Info className="w-3 h-3 mt-0.5 flex-shrink-0 text-gray-500" />
+            {hint}
+          </p>
+        )}
+      </div>
+    )
+  }
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-2 flex-wrap">
-        <div className="flex items-center gap-2">
-          {providerColor && (
-            <div
-              className="w-2 h-2 rounded-full"
-              style={{ backgroundColor: providerColor }}
-            />
+    <div className={cn('space-y-2', className)}>
+      <label className="flex items-center gap-2 text-sm font-medium text-gray-200">
+        {label}
+        {isRequired && <span className="text-red-400 text-xs">*</span>}
+      </label>
+
+      <div className="relative flex items-center">
+        <input
+          type={isVisible ? 'text' : 'password'}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className={cn(
+            'w-full px-4 py-3 pr-20 rounded-xl text-sm',
+            'bg-white/5 border border-white/10',
+            'text-white placeholder:text-gray-600',
+            'focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/30',
+            'transition-all duration-200 font-mono',
           )}
-          <label className="text-sm font-medium text-gray-200">{label}</label>
+          autoComplete="off"
+          spellCheck={false}
+        />
+
+        <div className="absolute right-2 flex items-center gap-1">
+          {value && (
+            <button
+              type="button"
+              onClick={handleCopy}
+              title={isCopied ? 'Copied!' : 'Copy'}
+              className={cn(
+                'w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-200',
+                isCopied ? 'text-emerald-400' : 'text-gray-400 hover:text-white hover:bg-white/10'
+              )}
+            >
+              {isCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={() => setIsVisible(!isVisible)}
+            title={isVisible ? 'Hide' : 'Show'}
+            className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-all duration-200"
+          >
+            {isVisible ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+          </button>
         </div>
-        {badge}
       </div>
 
-      {description && (
-        <p className="text-xs text-gray-500">{description}</p>
+      {hint && (
+        <p className="text-xs text-gray-400 flex items-start gap-1.5">
+          <Info className="w-3 h-3 mt-0.5 flex-shrink-0 text-gray-500" />
+          {hint}
+        </p>
       )}
-
-      <div
-        className={cn(
-          'relative flex items-center rounded-lg border transition-all duration-200',
-          isFocused
-            ? 'border-purple-500/50 ring-1 ring-purple-500/20'
-            : isSaved && hasValue
-            ? 'border-emerald-500/30'
-            : 'border-white/10',
-          'bg-white/5 hover:bg-white/[0.07]'
-        )}
-      >
-        <Key className="absolute left-3 w-4 h-4 text-gray-500 pointer-events-none" />
-
-        {isSaved && hasValue && !isFocused ? (
-          // Show masked preview when saved
-          <div className="flex items-center justify-between w-full pl-10 pr-2 py-2.5">
-            <span className="text-sm text-gray-400 font-mono tracking-wider">
-              {maskedValue}
-            </span>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => setShowKey(!showKey)}
-                className="p-1.5 rounded-md text-gray-500 hover:text-white hover:bg-white/5 transition-colors"
-                title={showKey ? 'Hide key' : 'Show key'}
-              >
-                {showKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-              </button>
-              <button
-                onClick={() => onChange('')}
-                className="p-1.5 rounded-md text-gray-500 hover:text-red-400 hover:bg-white/5 transition-colors"
-                title="Clear key"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          </div>
-        ) : (
-          // Show editable input
-          <>
-            <input
-              type={showKey ? 'text' : 'password'}
-              value={value}
-              onChange={(e) => onChange(e.target.value)}
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
-              placeholder={isSaved && hasValue ? maskedValue : placeholder}
-              className="w-full bg-transparent text-sm text-white placeholder:text-gray-600 pl-10 pr-20 py-2.5 outline-none font-mono"
-              autoComplete="off"
-              spellCheck={false}
-            />
-            {hasValue && (
-              <div className="absolute right-2 flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => setShowKey(!showKey)}
-                  className="p-1.5 rounded-md text-gray-500 hover:text-white hover:bg-white/5 transition-colors"
-                  tabIndex={-1}
-                >
-                  {showKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onChange('')}
-                  className="p-1.5 rounded-md text-gray-500 hover:text-red-400 hover:bg-white/5 transition-colors"
-                  tabIndex={-1}
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            )}
-          </>
-        )}
-      </div>
     </div>
   )
 }
+
+export default ApiKeyInput

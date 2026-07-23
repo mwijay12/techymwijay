@@ -46,16 +46,19 @@ if (isBrowser) {
     auth = getAuth(app)
     db = getFirestore(app)
 
-    // Enable offline persistence (multi-tab supported)
-    enableMultiTabIndexedDbPersistence(db).catch((err) => {
-      if (err.code === 'failed-precondition') {
-        // Multiple tabs open, persistence can only be enabled in one tab at a time
-        console.warn('[Firebase] Persistence failed (multiple tabs):', err.message)
-      } else if (err.code === 'unimplemented') {
-        // The current browser does not support persistence
-        console.warn('[Firebase] Persistence not supported:', err.message)
-      }
-    })
+    // Enable offline persistence with multi-tab support
+    const { claimPrimaryTab } = require('./multi-tab')
+    enableMultiTabIndexedDbPersistence(db)
+      .then(() => {
+        claimPrimaryTab()
+      })
+      .catch((err) => {
+        if (err.code === 'failed-precondition') {
+          console.warn('[Firebase] Multi-tab: using shared persistence lock')
+        } else if (err.code === 'unimplemented') {
+          console.warn('[Firebase] Browser does not support persistence')
+        }
+      })
 
     // Connect to emulators in development when flag is set
     if (

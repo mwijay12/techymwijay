@@ -1,126 +1,160 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { motion } from 'framer-motion'
+import { Suspense, lazy, useState, useEffect, useRef } from 'react'
+import { cn } from '@/lib/utils'
+
+const Spline = lazy(() => import('@splinetool/react-spline'))
 
 interface SplineSceneProps {
-  scene: string
+  scene?: string
   className?: string
-  fallback?: React.ReactNode
+  height?: number
+  fallbackAlways?: boolean
 }
 
-export function SplineScene({ scene, className, fallback }: SplineSceneProps) {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const splineRef = useRef<any>(null)
-  const [isOnline, setIsOnline] = useState(true)
-  const [isElectron, setIsElectron] = useState(false)
-  const [splineLoaded, setSplineLoaded] = useState(false)
+function CanvasFallback({
+  className,
+  height = 400,
+}: {
+  className?: string
+  height?: number
+}) {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const animRef = useRef<number>(0)
 
   useEffect(() => {
-    // Check if running in Electron or offline
-    const isElectronApp = typeof window !== 'undefined' && window.electronAPI?.isElectron
-    setIsElectron(!!isElectronApp)
-    setIsOnline(navigator.onLine)
+    const canvas = canvasRef.current
+    if (!canvas) return
 
-    const handleOnline = () => setIsOnline(true)
-    const handleOffline = () => setIsOnline(false)
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
 
-    window.addEventListener('online', handleOnline)
-    window.addEventListener('offline', handleOffline)
+    let time = 0
 
-    return () => {
-      window.removeEventListener('online', handleOnline)
-      window.removeEventListener('offline', handleOffline)
+    const draw = () => {
+      const W = canvas.width
+      const H = canvas.height
+
+      ctx.clearRect(0, 0, W, H)
+
+      const bg = ctx.createRadialGradient(
+        W / 2, H / 2, 0,
+        W / 2, H / 2, W * 0.7
+      )
+      bg.addColorStop(0, 'rgba(99, 102, 241, 0.1)')
+      bg.addColorStop(0.5, 'rgba(139, 92, 246, 0.05)')
+      bg.addColorStop(1, 'rgba(15, 15, 26, 0)')
+      ctx.fillStyle = bg
+      ctx.fillRect(0, 0, W, H)
+
+      const BAR_COUNT = 64
+      const barW = W / BAR_COUNT - 1
+
+      for (let i = 0; i < BAR_COUNT; i++) {
+        const t = time / 60
+        const wave1 = Math.sin(i * 0.2 + t) * 0.35
+        const wave2 = Math.sin(i * 0.5 + t * 1.4) * 0.25
+        const wave3 = Math.sin(i * 0.1 + t * 0.6) * 0.25
+        const combined = Math.abs(wave1 + wave2 + wave3) / 1.1
+
+        const minH = 6
+        const maxH = H * 0.7
+        const barH = minH + combined * maxH
+
+        const x = i * (barW + 1)
+        const y = H / 2 - barH / 2
+
+        const ratio = i / BAR_COUNT
+        const r = Math.round(99 + ratio * (6 - 99))
+        const g = Math.round(102 + ratio * (182 - 102))
+        const b = Math.round(241 + ratio * (212 - 241))
+        const alpha = 0.3 + combined * 0.7
+
+        ctx.fillStyle = `rgba(${r},${g},${b},${alpha})`
+        ctx.beginPath()
+        if (ctx.roundRect) {
+          ctx.roundRect(x, y, barW, barH, 3)
+        } else {
+          ctx.rect(x, y, barW, barH)
+        }
+        ctx.fill()
+      }
+
+      time++
+      animRef.current = requestAnimationFrame(draw)
     }
+
+    animRef.current = requestAnimationFrame(draw)
+    return () => cancelAnimationFrame(animRef.current)
   }, [])
 
-  useEffect(() => {
-    // Skip Spline loading if offline or in Electron (offline-first)
-    if (!isOnline || isElectron) return
-
-    let mounted = true
-    
-    const initSpline = async () => {
-      try {
-        const { Application } = await import('@splinetool/runtime')
-        if (!mounted || !containerRef.current) return
-        
-        const canvas = document.createElement('canvas')
-        containerRef.current.appendChild(canvas)
-        
-        const app = new Application(canvas)
-        await app.load(scene)
-        
-        if (mounted) {
-          splineRef.current = app
-          setSplineLoaded(true)
-        }
-      } catch (err) {
-        // Spline failed to load - silent fallback
-        console.warn('Spline failed to load, using fallback')
-      }
-    }
-    
-    initSpline()
-    
-    return () => {
-      mounted = false
-      if (splineRef.current) {
-        try { splineRef.current.dispose?.() } catch {}
-      }
-    }
-  }, [scene, isOnline, isElectron])
-
-  // Show fallback when offline, in Electron, or Spline failed to load
-  if (!isOnline || isElectron || !splineLoaded) {
-    return (
-      <div 
-        className={className || 'w-full h-full'}
-        style={{ minHeight: '300px' }}
-      >
-        {fallback || <DefaultSplineFallback />}
-      </div>
-    )
-  }
-
   return (
-    <div 
-      ref={containerRef}
-      className={className || 'w-full h-full'}
-      style={{ minHeight: '300px' }}
+    <canvas
+      ref={canvasRef}
+      width={800}
+      height={height}
+      className={cn('w-full h-full', className)}
     />
   )
 }
 
-// Default animated fallback for offline/Electron mode
-function DefaultSplineFallback() {
+export function SplineScene({
+  scene,
+  className,
+  height = 400,
+  fallbackAlways = false,
+}: SplineSceneProps) {
+  const [hasError, setHasError] = useState(false)
+  const [isOffline, setIsOffline] = useState(false)
+  const [loadTimeout, setLoadTimeout] = useState(false)
+
+  useEffect(() => {
+    setIsOffline(!navigator.onLine)
+    const handleOnline = () => setIsOffline(false)
+    const handleOffline = () => setIsOffline(true)
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+
+    // Safety timeout: 25 seconds to allow slow connections to load Spline 3D
+    const timer = setTimeout(() => {
+      setLoadTimeout(true)
+    }, 25000)
+
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+      clearTimeout(timer)
+    }
+  }, [])
+
+  if (isOffline || hasError || (loadTimeout && !scene) || fallbackAlways) {
+    return <CanvasFallback className={className} height={height} />
+  }
+
   return (
-    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-900 via-black to-gray-900">
-      <div className="relative">
-        {/* Animated rings */}
-        <motion.div
-          className="absolute inset-0 rounded-full border-2 border-blue-500/20"
-          animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
-          transition={{ duration: 3, repeat: Infinity }}
-        />
-        <motion.div
-          className="absolute inset-4 rounded-full border-2 border-purple-500/30"
-          animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0, 0.3] }}
-          transition={{ duration: 2.5, repeat: Infinity, delay: 0.5 }}
-        />
-        {/* Center icon */}
-        <motion.div
-          className="relative z-10 w-24 h-24 rounded-2xl bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-2xl shadow-blue-500/30"
-          animate={{ y: [-5, 5, -5] }}
-          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-        >
-          <svg viewBox="0 0 24 24" fill="none" className="w-12 h-12 text-white">
-            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </motion.div>
-      </div>
-    </div>
+    <Suspense
+      fallback={
+        <div className="w-full h-full flex items-center justify-center bg-black/40 rounded-2xl border border-white/10">
+          <div className="flex flex-col items-center gap-2">
+            <span className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+            <span className="text-xs text-gray-400 font-mono animate-pulse">
+              Loading 3D Scene...
+            </span>
+          </div>
+        </div>
+      }
+    >
+      <Spline
+        scene={scene || 'https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode'}
+        className={className}
+        onLoad={() => {
+          setHasError(false)
+          setLoadTimeout(false)
+        }}
+        onError={() => setHasError(true)}
+      />
+    </Suspense>
   )
 }
+
+export default SplineScene

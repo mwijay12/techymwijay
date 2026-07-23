@@ -1,0 +1,78 @@
+{
+  "manifest_version": 3,
+  "name": "Mwijay Tech — AI Voice & Password Vault",
+  "short_name": "Mwijay Vault",
+  "description": "STT dictation, TTS read-aloud, password & API key vault, and web snippet collector by Davie Mwijay.",
+  "version": "1.1.0",
+  "author": "Davie Mwijay",
+
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Mwijay Tech Vault & Voice Studio",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_idle"
+    }
+  ],
+
+  "permissions": [
+    "activeTab",
+    "storage",
+    "contextMenus",
+    "notifications",
+    "scripting",
+    "tabs",
+    "audioCapture"
+  ],
+
+  "host_permissions": [
+    "https://*/*",
+    "http://*/*",
+    "https://firestore.googleapis.com/*",
+    "https://identitytoolkit.googleapis.com/*"
+  ],
+
+  "commands": {
+    "trigger-dictation": {
+      "suggested_key": {
+        "default": "Alt+M",
+        "mac": "Command+Shift+M"
+      },
+      "description": "Start voice dictation in focused input"
+    }
+  },
+
+  "web_accessible_resources": [
+    {
+      "resources": ["icons/*.png"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}

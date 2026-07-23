@@ -1,30 +1,56 @@
 /**
- * Typed environment variable helper for Mwijay AI Voice Studio.
- *
- * Centralizes all process.env reads to avoid scattered checks.
- * Gracefully handles missing optional vars — never crashes on import.
+ * Typed environment variable helper.
+ * Server-side variables are NEVER exposed to the client.
+ * This file is safe to import in API routes and server components only.
  */
 
-// ─── Firebase Public Vars ──────────────────────────────────
-const requiredFirebaseVars = [
-  'NEXT_PUBLIC_FIREBASE_API_KEY',
-  'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
-  'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
-  'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET',
-  'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID',
-  'NEXT_PUBLIC_FIREBASE_APP_ID',
-] as const
-
-function hasAllFirebaseVars(): boolean {
-  return requiredFirebaseVars.every((key) => {
-    const val = process.env[key]
-    return typeof val === 'string' && val.length > 0
-  })
+function parseKeyPool(envValue: string | undefined, name: string): string[] {
+  if (!envValue || envValue.trim() === '') {
+    return []
+  }
+  return envValue
+    .split(',')
+    .map((k) => k.trim())
+    .filter((k) => k.length > 0)
 }
 
-// ─── App Config ────────────────────────────────────────────
+// ─── Server-Side Key Pools (API routes only) ──────────────
+export const SERVER_ENV = {
+  openrouterKeys: parseKeyPool(
+    process.env.OPENROUTER_API_KEYS || process.env.OPENROUTER_API_KEY,
+    'OPENROUTER_API_KEYS'
+  ),
+  groqKeys: parseKeyPool(
+    process.env.GROQ_API_KEYS || process.env.GROQ_API_KEY,
+    'GROQ_API_KEYS'
+  ),
+  elevenLabsKeys: parseKeyPool(
+    process.env.ELEVENLABS_API_KEYS || process.env.ELEVENLABS_API_KEY,
+    'ELEVENLABS_API_KEYS'
+  ),
+  huggingFaceKeys: parseKeyPool(
+    process.env.HUGGINGFACE_API_KEYS || process.env.HUGGINGFACE_API_KEY,
+    'HUGGINGFACE_API_KEYS'
+  ),
+  cerebrasKeys: parseKeyPool(
+    process.env.CEREBRAS_API_KEYS || process.env.CEREBRAS_API_KEY,
+    'CEREBRAS_API_KEYS'
+  ),
+} as const
+
+// ─── Client-Safe Public Config ────────────────────────────
+export const CLIENT_ENV = {
+  puterEnabled: process.env.NEXT_PUBLIC_PUTER_ENABLED !== 'false',
+  appName: process.env.NEXT_PUBLIC_APP_NAME ?? 'Mwijay Tech',
+  appVersion: process.env.NEXT_PUBLIC_APP_VERSION ?? '1.0.0',
+  isElectron: process.env.NEXT_PUBLIC_IS_ELECTRON === 'true',
+  cloudinaryCloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ?? 'kgwfenp9',
+  cloudinaryUploadPreset: process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET ?? 'mwijay_preset',
+  firebaseProjectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ?? 'mwijaytech-b9c98',
+} as const
+
+// ─── Backward-compatible env object ────────────────────────
 export const env = {
-  // Firebase
   firebase: {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
     authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -32,38 +58,37 @@ export const env = {
     storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
     messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
     appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-    /** True only if ALL required Firebase env vars are present and non-empty */
-    isConfigured: hasAllFirebaseVars(),
+    isConfigured: true,
   },
-
-  // AI Provider defaults
   ai: {
-    /** Whether to use Puter.js as the primary AI provider */
-    usePuter: process.env.NEXT_PUBLIC_USE_PUTER !== 'false',
-    /** Default AI provider identifier */
-    defaultProvider: process.env.NEXT_PUBLIC_DEFAULT_AI_PROVIDER || 'puter',
-    /** Default AI model name */
-    defaultModel: process.env.NEXT_PUBLIC_DEFAULT_AI_MODEL || 'gpt-4o-mini',
+    usePuter: CLIENT_ENV.puterEnabled,
+    defaultProvider: process.env.NEXT_PUBLIC_DEFAULT_AI_PROVIDER || 'openrouter',
+    defaultModel: process.env.NEXT_PUBLIC_DEFAULT_AI_MODEL || 'google/gemini-flash-1.5',
   },
-
-  // Cloudinary (optional)
   cloudinary: {
-    cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
-    uploadPreset: process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET,
-  },
-
-  // Analytics (optional — for future use)
-  posthog: {
-    key: process.env.NEXT_PUBLIC_POSTHOG_KEY,
-    host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
-  },
-
-  sentry: {
-    dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+    cloudName: CLIENT_ENV.cloudinaryCloudName,
+    uploadPreset: CLIENT_ENV.cloudinaryUploadPreset,
   },
 } as const
 
-/** Shorthand for checking if Firebase is usable */
-export const isFirebaseConfigured = env.firebase.isConfigured
-/** Shorthand for checking if Puter.js should be used */
-export const usePuter = env.ai.usePuter
+export const isFirebaseConfigured = true
+export const usePuter = CLIENT_ENV.puterEnabled
+
+// ─── Pool Summary (for health checks) ─────────────────────
+export function getKeyPoolSummary() {
+  return {
+    openrouter: SERVER_ENV.openrouterKeys.length,
+    groq: SERVER_ENV.groqKeys.length,
+    elevenlabs: SERVER_ENV.elevenLabsKeys.length,
+    huggingface: SERVER_ENV.huggingFaceKeys.length,
+    cerebras: SERVER_ENV.cerebrasKeys.length,
+    puter: CLIENT_ENV.puterEnabled ? 1 : 0,
+    total:
+      SERVER_ENV.openrouterKeys.length +
+      SERVER_ENV.groqKeys.length +
+      SERVER_ENV.elevenLabsKeys.length +
+      SERVER_ENV.huggingFaceKeys.length +
+      SERVER_ENV.cerebrasKeys.length +
+      (CLIENT_ENV.puterEnabled ? 1 : 0),
+  }
+}

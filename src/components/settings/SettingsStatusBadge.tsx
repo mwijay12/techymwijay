@@ -1,65 +1,74 @@
-'use client'
-
+import { CheckCircle, AlertCircle, Loader2, XCircle, Wifi } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-type BadgeVariant =
-  | 'configured'
-  | 'missing'
-  | 'default'
-  | 'puter'
-  | 'local-only'
+type BadgeStatus = 'healthy' | 'unconfigured' | 'testing' | 'error'
 
 interface SettingsStatusBadgeProps {
-  variant: BadgeVariant
-  label?: string
+  status: BadgeStatus
+  keyCount?: number
+  latencyMs?: number
   className?: string
 }
 
-const variantStyles: Record<BadgeVariant, string> = {
-  configured:
-    'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-  missing:
-    'bg-amber-500/10 text-amber-400 border-amber-500/20',
-  default:
-    'bg-blue-500/10 text-blue-400 border-blue-500/20',
-  puter:
-    'bg-purple-500/10 text-purple-400 border-purple-500/20',
-  'local-only':
-    'bg-gray-500/10 text-gray-400 border-gray-500/20',
+const STATUS_CONFIG = {
+  healthy: {
+    icon: CheckCircle,
+    label: 'Configured',
+    className: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+  },
+  unconfigured: {
+    icon: AlertCircle,
+    label: 'Not Configured',
+    className: 'text-gray-400 bg-white/5 border-white/10',
+  },
+  testing: {
+    icon: Loader2,
+    label: 'Testing...',
+    className: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20',
+  },
+  error: {
+    icon: XCircle,
+    label: 'Error',
+    className: 'text-red-400 bg-red-500/10 border-red-500/20',
+  },
 }
 
-const defaultLabels: Record<BadgeVariant, string> = {
-  configured: 'Configured',
-  missing: 'Missing Key',
-  default: 'Default',
-  puter: 'Using Puter',
-  'local-only': 'Local Only',
-}
-
-export default function SettingsStatusBadge({
-  variant,
-  label,
+export function SettingsStatusBadge({
+  status,
+  keyCount,
+  latencyMs,
   className,
 }: SettingsStatusBadgeProps) {
+  const config = STATUS_CONFIG[status] || STATUS_CONFIG.unconfigured
+  const Icon = config.icon
+  const isSpinning = status === 'testing'
+
   return (
-    <span
+    <div
       className={cn(
-        'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border',
-        variantStyles[variant],
+        'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg',
+        'text-xs font-medium border transition-all duration-200',
+        config.className,
         className
       )}
     >
-      <span
-        className={cn(
-          'w-1.5 h-1.5 rounded-full',
-          variant === 'configured' && 'bg-emerald-400',
-          variant === 'missing' && 'bg-amber-400',
-          variant === 'default' && 'bg-blue-400',
-          variant === 'puter' && 'bg-purple-400',
-          variant === 'local-only' && 'bg-gray-400'
-        )}
-      />
-      {label ?? defaultLabels[variant]}
-    </span>
+      <Icon className={cn('w-3 h-3', isSpinning && 'animate-spin')} />
+      <span>{config.label}</span>
+
+      {keyCount !== undefined && keyCount > 0 && status !== 'unconfigured' && (
+        <span className="ml-0.5 px-1.5 py-0.5 rounded-md bg-black/40 text-[10px] font-bold">
+          {keyCount} {keyCount === 1 ? 'key' : 'keys'}
+        </span>
+      )}
+
+      {latencyMs !== undefined && status === 'healthy' && (
+        <span className="ml-0.5 flex items-center gap-0.5 text-[10px] opacity-70 font-mono">
+          <Wifi className="w-2.5 h-2.5" />
+          {latencyMs}ms
+        </span>
+      )}
+    </div>
   )
 }
+
+export default SettingsStatusBadge

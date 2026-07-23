@@ -1,9 +1,10 @@
 /**
  * AI Provider Catalog
- *
- * Typed catalog of all supported AI providers and their models.
- * Easy to extend — just add a new entry to the array.
+ * Defines all available providers, their models, capabilities,
+ * and configuration for the key rotation engine.
  */
+
+import type { AIProvider, AIModel } from '@/types/ai'
 
 export type AIProviderId =
   | 'puter'
@@ -31,6 +32,171 @@ export interface AIProviderEntry {
   icon?: string
 }
 
+// ─── Model Definitions ─────────────────────────────────────
+
+export const OPENROUTER_MODELS: AIModel[] = [
+  {
+    id: 'google/gemini-flash-1.5',
+    name: 'Gemini Flash 1.5',
+    provider: 'openrouter',
+    contextLength: 1000000,
+    supportsStreaming: true,
+    costPer1kTokens: 0,
+  },
+  {
+    id: 'meta-llama/llama-3.1-8b-instruct:free',
+    name: 'Llama 3.1 8B (Free)',
+    provider: 'openrouter',
+    contextLength: 131072,
+    supportsStreaming: true,
+    costPer1kTokens: 0,
+  },
+  {
+    id: 'openai/gpt-4o-mini',
+    name: 'GPT-4o Mini',
+    provider: 'openrouter',
+    contextLength: 128000,
+    supportsStreaming: true,
+    costPer1kTokens: 0.00015,
+  },
+  {
+    id: 'mistralai/mistral-7b-instruct:free',
+    name: 'Mistral 7B (Free)',
+    provider: 'openrouter',
+    contextLength: 32768,
+    supportsStreaming: true,
+    costPer1kTokens: 0,
+  },
+]
+
+export const GROQ_MODELS: AIModel[] = [
+  {
+    id: 'llama-3.1-70b-versatile',
+    name: 'Llama 3.1 70B',
+    provider: 'groq',
+    contextLength: 128000,
+    supportsStreaming: true,
+    costPer1kTokens: 0,
+  },
+  {
+    id: 'llama3-8b-8192',
+    name: 'Llama 3 8B',
+    provider: 'groq',
+    contextLength: 8192,
+    supportsStreaming: true,
+    costPer1kTokens: 0,
+  },
+  {
+    id: 'mixtral-8x7b-32768',
+    name: 'Mixtral 8x7B',
+    provider: 'groq',
+    contextLength: 32768,
+    supportsStreaming: true,
+    costPer1kTokens: 0,
+  },
+]
+
+export const HUGGINGFACE_MODELS: AIModel[] = [
+  {
+    id: 'mistralai/Mistral-7B-Instruct-v0.3',
+    name: 'Mistral 7B Instruct',
+    provider: 'huggingface',
+    contextLength: 32768,
+    supportsStreaming: false,
+    costPer1kTokens: 0,
+  },
+  {
+    id: 'meta-llama/Meta-Llama-3-8B-Instruct',
+    name: 'Llama 3 8B Instruct',
+    provider: 'huggingface',
+    contextLength: 8192,
+    supportsStreaming: false,
+    costPer1kTokens: 0,
+  },
+]
+
+export const PUTER_MODELS: AIModel[] = [
+  {
+    id: 'gpt-4o-mini',
+    name: 'GPT-4o Mini (via Puter)',
+    provider: 'puter',
+    contextLength: 128000,
+    supportsStreaming: false,
+    costPer1kTokens: 0,
+  },
+]
+
+// ─── Provider Failover Order ───────────────────────────────
+export const PROVIDER_FAILOVER_ORDER: AIProvider[] = [
+  'openrouter',
+  'groq',
+  'huggingface',
+  'puter',
+]
+
+// ─── Default Models Per Provider ──────────────────────────
+export const DEFAULT_MODELS: Record<AIProvider, string> = {
+  openrouter: 'google/gemini-flash-1.5',
+  groq: 'llama-3.1-70b-versatile',
+  elevenlabs: 'eleven_multilingual_v2',
+  huggingface: 'mistralai/Mistral-7B-Instruct-v0.3',
+  puter: 'gpt-4o-mini',
+}
+
+// ─── All Models Flat List ──────────────────────────────────
+export const ALL_MODELS: AIModel[] = [
+  ...OPENROUTER_MODELS,
+  ...GROQ_MODELS,
+  ...HUGGINGFACE_MODELS,
+  ...PUTER_MODELS,
+]
+
+// ─── Provider Display Info ─────────────────────────────────
+export const PROVIDER_INFO: Record<AIProvider, {
+  displayName: string
+  description: string
+  docsUrl: string
+  color: string
+  isFree: boolean
+}> = {
+  openrouter: {
+    displayName: 'OpenRouter',
+    description: 'Multi-model AI gateway with 18 key pool',
+    docsUrl: 'https://openrouter.ai/keys',
+    color: '#7c3aed',
+    isFree: true,
+  },
+  groq: {
+    displayName: 'Groq',
+    description: 'Ultra-fast LPU inference with 10 key pool',
+    docsUrl: 'https://console.groq.com/keys',
+    color: '#f97316',
+    isFree: true,
+  },
+  elevenlabs: {
+    displayName: 'ElevenLabs',
+    description: 'Natural TTS voice generation with 17 key pool',
+    docsUrl: 'https://elevenlabs.io',
+    color: '#0ea5e9',
+    isFree: true,
+  },
+  huggingface: {
+    displayName: 'HuggingFace',
+    description: 'Open source model inference with 2 key pool',
+    docsUrl: 'https://huggingface.co/settings/tokens',
+    color: '#fbbf24',
+    isFree: true,
+  },
+  puter: {
+    displayName: 'Puter.js',
+    description: 'Zero-config browser AI fallback — no key needed',
+    docsUrl: 'https://puter.com',
+    color: '#10b981',
+    isFree: true,
+  },
+}
+
+// ─── Legacy Provider Entries List ─────────────────────────
 export const AI_PROVIDERS: AIProviderEntry[] = [
   {
     id: 'puter',
@@ -47,96 +213,100 @@ export const AI_PROVIDERS: AIProviderEntry[] = [
     colorToken: '#8b5cf6',
   },
   {
+    id: 'openrouter',
+    label: 'OpenRouter',
+    description: 'Multi-model AI gateway with 18 key pool.',
+    requiresApiKey: true,
+    defaultModel: 'google/gemini-flash-1.5',
+    supportsModels: [
+      { id: 'google/gemini-flash-1.5', label: 'Gemini Flash 1.5', description: 'Fast & free' },
+      { id: 'openai/gpt-4o-mini', label: 'GPT-4o Mini', description: 'Affordable' },
+      { id: 'meta-llama/llama-3.1-8b-instruct:free', label: 'Llama 3.1 8B', description: 'Free tier' },
+    ],
+    colorToken: '#10b981',
+  },
+  {
     id: 'groq',
     label: 'Groq',
     description: 'Ultra-fast inference with open-source models.',
     requiresApiKey: true,
-    defaultModel: 'llama-3.3-70b-versatile',
+    defaultModel: 'llama-3.1-70b-versatile',
     supportsModels: [
-      { id: 'llama-3.3-70b-versatile', label: 'Llama 3.3 70B', description: 'Fast & powerful' },
-      { id: 'mixtral-8x7b-32768', label: 'Mixtral 8x7B', description: 'Strong 32K context' },
-      { id: 'llama-3.1-8b-instant', label: 'Llama 3.1 8B', description: 'Lightning fast' },
-      { id: 'whisper-large-v3', label: 'Whisper Large V3', description: 'STT (future)' },
+      { id: 'llama-3.1-70b-versatile', label: 'Llama 3.1 70B', description: 'Fast & powerful' },
+      { id: 'mixtral-8x7b-32768', label: 'Mixtral 8x7B', description: '32K context' },
+      { id: 'llama3-8b-8192', label: 'Llama 3 8B', description: 'Lightning fast' },
     ],
     colorToken: '#f97316',
   },
   {
     id: 'gemini',
     label: 'Gemini',
-    description: 'Google Gemini family — multimodal, capable models.',
+    description: 'Google Gemini family.',
     requiresApiKey: true,
     defaultModel: 'gemini-2.0-flash',
     supportsModels: [
-      { id: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash', description: 'Fast & efficient' },
-      { id: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro', description: 'Powerful long context' },
-      { id: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash', description: 'Balanced speed/quality' },
+      { id: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash', description: 'Fast' },
     ],
     colorToken: '#4285f4',
   },
   {
     id: 'cerebras',
     label: 'Cerebras',
-    description: 'Hardware-accelerated LLM inference — very fast.',
+    description: 'Hardware-accelerated LLM inference.',
     requiresApiKey: true,
     defaultModel: 'llama3.1-8b',
     supportsModels: [
-      { id: 'llama3.1-8b', label: 'Llama 3.1 8B', description: 'Fast inference' },
-      { id: 'llama3.1-70b', label: 'Llama 3.1 70B', description: 'Heavy lifter' },
+      { id: 'llama3.1-8b', label: 'Llama 3.1 8B', description: 'Fast' },
     ],
     colorToken: '#06b6d4',
   },
   {
-    id: 'openrouter',
-    label: 'OpenRouter',
-    description: 'Unified API for many models. Bring your own key.',
-    requiresApiKey: true,
-    defaultModel: 'openai/gpt-4o-mini',
-    supportsModels: [
-      { id: 'openai/gpt-4o-mini', label: 'GPT-4o Mini', description: 'Affordable & capable' },
-      { id: 'openai/gpt-4o', label: 'GPT-4o', description: 'Premium OpenAI' },
-      { id: 'anthropic/claude-3.5-sonnet', label: 'Claude 3.5 Sonnet', description: 'Best for code' },
-      { id: 'google/gemini-2.0-flash-001', label: 'Gemini 2.0 Flash', description: 'Via OpenRouter' },
-    ],
-    colorToken: '#10b981',
-  },
-  {
     id: 'huggingface',
     label: 'HuggingFace',
-    description: 'Open-source models via HuggingFace Inference API.',
+    description: 'Open-source models via HuggingFace API.',
     requiresApiKey: true,
     defaultModel: 'mistralai/Mistral-7B-Instruct-v0.3',
     supportsModels: [
-      { id: 'mistralai/Mistral-7B-Instruct-v0.3', label: 'Mistral 7B', description: 'Solid open model' },
-      { id: 'meta-llama/Llama-3.2-3B', label: 'Llama 3.2 3B', description: 'Lightweight' },
-      { id: 'HuggingFaceH4/zephyr-7b-beta', label: 'Zephyr 7B', description: 'Chat-tuned' },
+      { id: 'mistralai/Mistral-7B-Instruct-v0.3', label: 'Mistral 7B', description: 'Solid' },
     ],
     colorToken: '#fbbf24',
   },
 ]
 
-/** Helper to get a provider entry by ID */
 export function getProviderById(id: AIProviderId): AIProviderEntry | undefined {
   return AI_PROVIDERS.find((p) => p.id === id)
 }
 
-/** Helper to get models for a provider */
 export function getModelsForProvider(id: AIProviderId): AIProviderModel[] {
   const provider = getProviderById(id)
   return provider?.supportsModels ?? []
 }
 
-/** Helper to get default model for a provider */
 export function getDefaultModelForProvider(id: AIProviderId): string {
   const provider = getProviderById(id)
   return provider?.defaultModel ?? 'gpt-4o-mini'
 }
 
-/** Default priority order */
 export const DEFAULT_PROVIDER_PRIORITY: AIProviderId[] = [
-  'puter',
+  'openrouter',
   'groq',
+  'huggingface',
+  'puter',
   'gemini',
   'cerebras',
-  'openrouter',
-  'huggingface',
 ]
+
+export function getProviderModels(provider: AIProvider): AIModel[] {
+  const map: Record<AIProvider, AIModel[]> = {
+    openrouter: OPENROUTER_MODELS,
+    groq: GROQ_MODELS,
+    elevenlabs: [],
+    huggingface: HUGGINGFACE_MODELS,
+    puter: PUTER_MODELS,
+  }
+  return map[provider] ?? []
+}
+
+export function getFreeModels(): AIModel[] {
+  return ALL_MODELS.filter(m => m.costPer1kTokens === 0)
+}

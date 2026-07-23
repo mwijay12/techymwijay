@@ -1,0 +1,59 @@
+{
+  "name": "Mwijay Tech — AI Productivity OS",
+  "short_name": "Mwijay Tech",
+  "description": "Personal AI productivity OS with voice dictation, encrypted vault, spending tracker, and AI memory. Built for Tanzania. 🇹🇿",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "background_color": "#0f0f1a",
+  "theme_color": "#6366f1",
+  "orientation": "portrait-primary",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["productivity", "utilities", "developer"],
+
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "32x32",
+      "type": "image/x-icon",
+      "purpose": "any"
+    }
+  ],
+
+  "shortcuts": [
+    {
+      "name": "Voice Dictation",
+      "short_name": "Dictate",
+      "description": "Open STT voice dictation",
+      "url": "/ai-stt"
+    },
+    {
+      "name": "Developer Vault",
+      "short_name": "Vault",
+      "description": "Open encrypted developer vault",
+      "url": "/blog"
+    },
+    {
+      "name": "Meeting Recording",
+      "short_name": "Meeting",
+      "description": "Start meeting transcription",
+      "url": "/meeting"
+    },
+    {
+      "name": "Todo System",
+      "short_name": "Todos",
+      "description": "Manage daily tasks",
+      "url": "/todos"
+    }
+  ],
+
+  "prefer_related_applications": false
+}

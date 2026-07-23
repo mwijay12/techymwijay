@@ -1,91 +1,140 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { aiChat, aiPrompt, aiTranslate } from '@/lib/ai-engine'
-import type { AIMessage, AIEngineOptions, AIEngineResult } from '@/lib/ai-engine'
+import type { AIMessage, AIProvider } from '@/types/ai'
 
-type UseAIState = {
-  loading: boolean
-  error: string | null
-  lastResult: AIEngineResult | null
-  lastProvider: string | null
+interface UseAIOptions {
+  preferredProvider?: AIProvider
+  model?: string
+  maxTokens?: number
+  temperature?: number
+  systemPrompt?: string
 }
 
-export function useAI() {
-  const [state, setState] = useState<UseAIState>({
-    loading: false,
-    error: null,
-    lastResult: null,
-    lastProvider: null,
+interface UseAIReturn {
+  sendMessage: (
+    message: string,
+    history?: AIMessage[],
+    userContext?: { name?: string; language?: string; timezone?: string }
+  ) => Promise<string>
+  translate: (
+    text: string,
+    sourceLang: string,
+    targetLang: string,
+    opts?: { maxTokens?: number }
+  ) => Promise<string>
+  isLoading: boolean
+  loading: boolean
+  error: string | null
+  lastProvider: AIProvider | null
+  clearError: () => void
+}
+
+async function callPuterAI(prompt: string): Promise<string> {
+  if (typeof window === 'undefined' || !(window as any).puter?.ai) {
+    throw new Error('Puter.js not available')
+  }
+
+  const response = await (window as any).puter.ai.chat(prompt, {
+    model: 'gpt-4o-mini',
   })
 
-  const chat = useCallback(
-    async (messages: AIMessage[], options?: AIEngineOptions): Promise<string | null> => {
-      setState((s) => ({ ...s, loading: true, error: null }))
-      try {
-        const result = await aiChat(messages, options)
-        setState((s) => ({
-          ...s,
-          loading: false,
-          lastResult: result,
-          lastProvider: result.provider,
-        }))
-        return result.text
-      } catch (err) {
-        const message = err instanceof Error ? err.message : 'AI request failed'
-        setState((s) => ({ ...s, loading: false, error: message }))
-        return null
-      }
-    },
-    []
-  )
+  if (typeof response === 'string') return response
+  if (response?.toString) return response.toString()
+  return String(response ?? '')
+}
 
-  const prompt = useCallback(
-    async (text: string, systemPrompt?: string, options?: AIEngineOptions): Promise<string | null> => {
-      setState((s) => ({ ...s, loading: true, error: null }))
+export function useAI(options: UseAIOptions = {}): UseAIReturn {
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [lastProvider, setLastProvider] = useState<AIProvider | null>(null)
+
+  const sendMessage = useCallback(
+    async (
+      message: string,
+      history: AIMessage[] = [],
+      userContext?: { name?: string; language?: string; timezone?: string }
+    ): Promise<string> => {
+      setIsLoading(true)
+      setError(null)
+
+      const messages: AIMessage[] = [
+        ...history,
+        {
+          id: crypto.randomUUID(),
+          role: 'user',
+          content: message,
+          timestamp: new Date().toISOString(),
+        },
+      ]
+
       try {
-        const result = await aiPrompt(text, systemPrompt, options)
-        setState((s) => ({
-          ...s,
-          loading: false,
-          lastResult: result,
-          lastProvider: result.provider,
-        }))
-        return result.text
+        const response = await fetch('/api/ai/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages,
+            model: options.model,
+            maxTokens: options.maxTokens,
+            temperature: options.temperature,
+            systemPrompt: options.systemPrompt,
+            preferredProvider: options.preferredProvider,
+            userContext,
+          }),
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          if (data.usePuterFallback) {
+            setLastProvider('puter')
+            const puterResult = await callPuterAI(message)
+            return puterResult
+          }
+          throw new Error(data.error ?? 'AI request failed')
+        }
+
+        setLastProvider(data.provider ?? 'openrouter')
+        return data.content ?? ''
       } catch (err) {
-        const message = err instanceof Error ? err.message : 'AI request failed'
-        setState((s) => ({ ...s, loading: false, error: message }))
-        return null
+        try {
+          setLastProvider('puter')
+          const puterResult = await callPuterAI(message)
+          return puterResult
+        } catch {
+          const msg = err instanceof Error ? err.message : 'AI request failed'
+          setError(msg)
+          throw new Error(msg)
+        }
+      } finally {
+        setIsLoading(false)
       }
     },
-    []
+    [options]
   )
 
   const translate = useCallback(
-    async (text: string, fromLang: string, toLang: string, options?: AIEngineOptions): Promise<string | null> => {
-      setState((s) => ({ ...s, loading: true, error: null }))
-      try {
-        const translated = await aiTranslate(text, fromLang, toLang, options)
-        setState((s) => ({ ...s, loading: false, error: null }))
-        return translated
-      } catch (err) {
-        const message = err instanceof Error ? err.message : 'Translation failed'
-        setState((s) => ({ ...s, loading: false, error: message }))
-        return null
-      }
+    async (
+      text: string,
+      sourceLang: string,
+      targetLang: string,
+      opts?: { maxTokens?: number }
+    ): Promise<string> => {
+      const prompt = `Translate the following text from ${sourceLang} to ${targetLang}. Return ONLY the translated text without extra formatting or explanation:\n\n${text}`
+      return sendMessage(prompt, [], undefined)
     },
-    []
+    [sendMessage]
   )
 
-  const clearError = useCallback(() => {
-    setState((s) => ({ ...s, error: null }))
-  }, [])
+  const clearError = useCallback(() => setError(null), [])
 
   return {
-    ...state,
-    chat,
-    prompt,
+    sendMessage,
     translate,
+    isLoading,
+    loading: isLoading,
+    error,
+    lastProvider,
     clearError,
   }
 }

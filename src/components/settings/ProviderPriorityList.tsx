@@ -1,118 +1,84 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { ArrowUp, ArrowDown } from 'lucide-react'
+import { ArrowDown, Shield } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { AIProviderId } from '@/lib/ai-provider-catalog'
-import { getProviderById } from '@/lib/ai-provider-catalog'
+import { PROVIDER_INFO, PROVIDER_FAILOVER_ORDER } from '@/lib/ai-provider-catalog'
+import type { AIProvider } from '@/types/ai'
+import { SettingsStatusBadge } from './SettingsStatusBadge'
+import type { ProviderHealth } from '@/hooks/use-settings-health'
 
 interface ProviderPriorityListProps {
-  priority: AIProviderId[]
-  onChange: (newPriority: AIProviderId[]) => void
+  health: Record<AIProvider, ProviderHealth>
+  className?: string
 }
 
-export default function ProviderPriorityList({
-  priority,
-  onChange,
+export function ProviderPriorityList({
+  health,
+  className,
 }: ProviderPriorityListProps) {
-  const moveUp = (index: number) => {
-    if (index === 0) return
-    const newPriority = [...priority]
-    ;[newPriority[index - 1], newPriority[index]] = [
-      newPriority[index],
-      newPriority[index - 1],
-    ]
-    onChange(newPriority)
-  }
-
-  const moveDown = (index: number) => {
-    if (index === priority.length - 1) return
-    const newPriority = [...priority]
-    ;[newPriority[index], newPriority[index + 1]] = [
-      newPriority[index + 1],
-      newPriority[index],
-    ]
-    onChange(newPriority)
-  }
-
   return (
-    <div className="space-y-2">
-      <label className="text-sm font-medium text-gray-200">
-        Provider Priority Order
-      </label>
-      <p className="text-xs text-gray-500">
-        Drag or use arrows to reorder. First provider with a valid key will be used as fallback.
-      </p>
+    <div className={cn('space-y-2', className)}>
+      <div className="flex items-center gap-2 mb-3">
+        <Shield className="w-4 h-4 text-purple-400" />
+        <span className="text-sm font-medium text-white">
+          Failover Order
+        </span>
+        <span className="text-xs text-gray-400">
+          (automatic — requests cascade down)
+        </span>
+      </div>
+
       <div className="space-y-1.5">
-        {priority.map((providerId, index) => {
-          const provider = getProviderById(providerId)
-          if (!provider) return null
+        {PROVIDER_FAILOVER_ORDER.map((provider, index) => {
+          const info = PROVIDER_INFO[provider]
+          const providerHealth = health[provider]
 
           return (
-            <motion.div
-              key={providerId}
-              layout
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.2, delay: index * 0.05 }}
+            <div
+              key={provider}
               className={cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg border transition-colors',
-                index === 0
-                  ? 'border-purple-500/20 bg-purple-500/5'
-                  : 'border-white/5 bg-white/[0.02]'
+                'flex items-center gap-3 px-4 py-3 rounded-xl',
+                'bg-white/5 border transition-all duration-200',
+                providerHealth?.status === 'healthy'
+                  ? 'border-white/10 hover:border-purple-500/30'
+                  : 'border-white/5 opacity-60'
               )}
             >
-              <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => moveUp(index)}
-                  disabled={index === 0}
-                  className={cn(
-                    'p-0.5 rounded transition-colors',
-                    index === 0
-                      ? 'text-gray-700 cursor-not-allowed'
-                      : 'text-gray-500 hover:text-white hover:bg-white/5'
-                  )}
-                >
-                  <ArrowUp className="w-3 h-3" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => moveDown(index)}
-                  disabled={index === priority.length - 1}
-                  className={cn(
-                    'p-0.5 rounded transition-colors',
-                    index === priority.length - 1
-                      ? 'text-gray-700 cursor-not-allowed'
-                      : 'text-gray-500 hover:text-white hover:bg-white/5'
-                  )}
-                >
-                  <ArrowDown className="w-3 h-3" />
-                </button>
+              <div
+                className="flex-shrink-0 w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold"
+                style={{ backgroundColor: `${info.color}20`, color: info.color }}
+              >
+                {index + 1}
               </div>
 
-              <span className="text-xs font-mono text-gray-600 w-4">
-                {index + 1}
-              </span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-white">
+                  {info.displayName}
+                </p>
+                <p className="text-xs text-gray-400 truncate">
+                  {info.description}
+                </p>
+              </div>
 
-              <div
-                className="w-2 h-2 rounded-full shrink-0"
-                style={{ backgroundColor: provider.colorToken }}
+              <SettingsStatusBadge
+                status={providerHealth?.status ?? 'unconfigured'}
+                keyCount={providerHealth?.keyCount}
               />
 
-              <span className="text-sm text-gray-300 flex-1">
-                {provider.label}
-              </span>
-
-              {index === 0 && (
-                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20">
-                  Primary
-                </span>
+              {index < PROVIDER_FAILOVER_ORDER.length - 1 && (
+                <ArrowDown className="flex-shrink-0 w-3 h-3 text-gray-600" />
               )}
-            </motion.div>
+            </div>
           )
         })}
       </div>
+
+      <p className="text-xs text-gray-500 mt-2 pl-1">
+        💡 If provider 1 fails or rate-limits, provider 2 is tried automatically.
+        Puter.js is always the final fallback and requires no key.
+      </p>
     </div>
   )
 }
+
+export default ProviderPriorityList

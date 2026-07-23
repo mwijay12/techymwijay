@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Offline — Mwijay Tech</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0f0f1a;
+      color: #e2e8f0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .icon {
+      font-size: 64px;
+      margin-bottom: 24px;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #6366f1, #06b6d4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    p {
+      color: #94a3b8;
+      font-size: 14px;
+      line-height: 1.6;
+      max-width: 320px;
+      margin-bottom: 8px;
+    }
+
+    .capabilities {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 20px;
+      margin: 24px 0;
+      max-width: 360px;
+      width: 100%;
+      text-align: left;
+    }
+
+    .capability {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      font-size: 13px;
+      color: #e2e8f0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .capability:last-child { border-bottom: none; }
+
+    .capability .status {
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .retry-btn {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+      border: none;
+      border-radius: 14px;
+      padding: 14px 32px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 20px rgba(99,102,241,0.4);
+    }
+
+    .retry-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 28px rgba(99,102,241,0.6);
+    }
+
+    .flag {
+      font-size: 12px;
+      color: #475569;
+      margin-top: 24px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="icon">📡</div>
+
+  <h1>Offline Mode</h1>
+  <p>Hakuna mtandao — You're currently offline.</p>
+  <p>Good news: most features still work without internet!</p>
+
+  <div class="capabilities">
+    <div class="capability">
+      <span class="status">✅</span>
+      <span>Developer Vault — read your secrets</span>
+    </div>
+    <div class="capability">
+      <span class="status">✅</span>
+      <span>Todo System — manage your tasks</span>
+    </div>
+    <div class="capability">
+      <span class="status">✅</span>
+      <span>Spending Tracker — log expenses</span>
+    </div>
+    <div class="capability">
+      <span class="status">✅</span>
+      <span>AI Memory — view your memories</span>
+    </div>
+    <div class="capability">
+      <span class="status">⚠️</span>
+      <span>AI Chat — requires internet</span>
+    </div>
+    <div class="capability">
+      <span class="status">⚠️</span>
+      <span>Groq Whisper STT — requires internet</span>
+    </div>
+    <div class="capability">
+      <span class="status">✅</span>
+      <span>Browser STT fallback — still works!</span>
+    </div>
+  </div>
+
+  <button class="retry-btn" onclick="window.location.reload()">
+    🔄 Try Again — Jaribu Tena
+  </button>
+
+  <p class="flag">
+    🇹🇿 Mwijay Tech · Built for Tanzania · Works offline
+  </p>
+
+  <script>
+    window.addEventListener('online', () => {
+      window.location.href = '/'
+    })
+  </script>
+</body>
+</html>

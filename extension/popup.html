@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mwijay Tech Vault & Voice</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      width: 360px;
+      min-height: 520px;
+      max-height: 580px;
+      background: #0d0f17;
+      color: #e2e8f0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 12px;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(139,92,246,0.12));
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo-icon {
+      width: 30px;
+      height: 30px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      box-shadow: 0 2px 10px rgba(99,102,241,0.3);
+    }
+
+    .logo-text {
+      font-size: 13px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #818cf8, #38bdf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .logo-sub {
+      font-size: 9px;
+      color: #94a3b8;
+      margin-top: -1px;
+    }
+
+    .open-app-btn {
+      background: rgba(99,102,241,0.15);
+      border: 1px solid rgba(99,102,241,0.35);
+      color: #818cf8;
+      border-radius: 8px;
+      padding: 4px 9px;
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+
+    .open-app-btn:hover {
+      background: rgba(99,102,241,0.3);
+      color: #fff;
+    }
+
+    .nav-tabs {
+      display: flex;
+      background: rgba(15, 23, 42, 0.9);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding: 4px;
+      gap: 4px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 7px 4px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #94a3b8;
+      background: transparent;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+
+    .tab-btn:hover {
+      color: #e2e8f0;
+      background: rgba(255,255,255,0.04);
+    }
+
+    .tab-btn.active {
+      background: rgba(99,102,241,0.18);
+      color: #a5b4fc;
+      border: 1px solid rgba(99,102,241,0.3);
+    }
+
+    .tab-content {
+      display: none;
+      padding: 12px 14px;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .auth-bar {
+      padding: 6px 14px;
+      background: rgba(15, 23, 42, 0.5);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #94a3b8;
+    }
+
+    .auth-info {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .auth-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+
+    .auth-dot.online { background: #10b981; box-shadow: 0 0 6px rgba(16,185,129,0.5); }
+    .auth-dot.offline { background: #f59e0b; }
+
+    .sync-badge {
+      font-size: 9px;
+      background: rgba(16,185,129,0.1);
+      color: #10b981;
+      border: 1px solid rgba(16,185,129,0.25);
+      padding: 2px 6px;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+
+    /* Vault Styling */
+    .vault-toolbar {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .search-box {
+      position: relative;
+    }
+
+    .search-input {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 7px 10px 7px 28px;
+      font-size: 11px;
+      color: #e2e8f0;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .search-input:focus {
+      border-color: rgba(99,102,241,0.4);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 9px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 11px;
+      color: #64748b;
+    }
+
+    .category-filter {
+      display: flex;
+      gap: 4px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .filter-chip {
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: 600;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      color: #94a3b8;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .filter-chip:hover { color: #e2e8f0; }
+
+    .filter-chip.active {
+      background: rgba(99,102,241,0.18);
+      color: #818cf8;
+      border-color: rgba(99,102,241,0.35);
+    }
+
+    .add-vault-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .add-btn {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      border: none;
+      color: #fff;
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .add-btn:hover { opacity: 0.9; }
+
+    .vault-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 330px;
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+
+    .vault-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 10px;
+      padding: 9px 11px;
+      transition: all 0.2s;
+    }
+
+    .vault-card:hover {
+      border-color: rgba(99,102,241,0.25);
+      background: rgba(255,255,255,0.05);
+    }
+
+    .vault-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .vault-title {
+      font-weight: 700;
+      font-size: 11px;
+      color: #f1f5f9;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .vault-type-badge {
+      font-size: 8px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 2px 5px;
+      border-radius: 4px;
+      letter-spacing: 0.05em;
+    }
+
+    .badge-password { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
+    .badge-api-key { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.25); }
+    .badge-snippet { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.25); }
+    .badge-credential { background: rgba(168,85,247,0.15); color: #c084fc; border: 1px solid rgba(168,85,247,0.25); }
+
+    .vault-value-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(0,0,0,0.3);
+      border-radius: 6px;
+      padding: 4px 8px;
+      margin-top: 4px;
+    }
+
+    .vault-masked-val {
+      font-family: monospace;
+      font-size: 11px;
+      color: #94a3b8;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 220px;
+    }
+
+    .vault-card-actions {
+      display: flex;
+      gap: 4px;
+    }
+
+    .card-icon-btn {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      padding: 3px;
+      border-radius: 4px;
+      font-size: 12px;
+      transition: all 0.15s;
+    }
+
+    .card-icon-btn:hover {
+      color: #fff;
+      background: rgba(255,255,255,0.1);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 30px 10px;
+      color: #64748b;
+    }
+
+    .empty-state-icon {
+      font-size: 28px;
+      margin-bottom: 6px;
+    }
+
+    /* Modal Form */
+    .vault-form-modal {
+      display: none;
+      background: rgba(15, 23, 42, 0.98);
+      border: 1px solid rgba(99,102,241,0.3);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 12px;
+
+    }
+
+    .vault-form-modal.active { display: block; }
+
+    .form-group {
+      margin-bottom: 8px;
+    }
+
+    .form-label {
+      font-size: 9px;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      margin-bottom: 3px;
+      display: block;
+    }
+
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px;
+      padding: 6px 8px;
+      font-size: 11px;
+      color: #e2e8f0;
+      outline: none;
+      font-family: inherit;
+    }
+
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color: #6366f1;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    /* Voice & Speech Styles */
+    .section-title {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #94a3b8;
+      margin-bottom: 8px;
+    }
+
+    .lang-selector {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .lang-btn {
+      flex: 1;
+      padding: 5px 6px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.03);
+      color: #94a3b8;
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .lang-btn.active {
+      background: rgba(99,102,241,0.15);
+      border-color: rgba(99,102,241,0.4);
+      color: #6366f1;
+    }
+
+    .mic-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 0;
+    }
+
+    .mic-btn {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 4px 20px rgba(99,102,241,0.4);
+      transition: all 0.2s;
+    }
+
+    .mic-btn.recording {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      box-shadow: 0 4px 24px rgba(239,68,68,0.5);
+      animation: popup-pulse 1.2s ease-in-out infinite;
+    }
+
+    @keyframes popup-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
+      50% { box-shadow: 0 0 0 10px rgba(239,68,68,0); }
+    }
+
+    .mic-status { font-size: 10px; color: #94a3b8; text-align: center; }
+
+    .transcript-area, .tts-input {
+      width: 100%;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 11px;
+      color: #e2e8f0;
+      resize: none;
+      outline: none;
+      font-family: inherit;
+    }
+
+    .action-row {
+      display: flex;
+      gap: 5px;
+      margin-top: 8px;
+    }
+
+    .action-btn {
+      flex: 1;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.04);
+      color: #94a3b8;
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+    }
+
+    .action-btn.primary {
+      background: rgba(99,102,241,0.18);
+      border-color: rgba(99,102,241,0.35);
+      color: #818cf8;
+    }
+
+    .action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .footer {
+      padding: 6px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      background: #090a10;
+      margin-top: auto;
+    }
+
+    .footer-text { font-size: 9px; color: #475569; }
+
+    .kbd {
+      display: inline-flex;
+      align-items: center;
+      padding: 1px 4px;
+      border-radius: 3px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.1);
+      font-size: 8px;
+      font-family: monospace;
+      color: #94a3b8;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(16,185,129,0.9);
+      color: #fff;
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 10px;
+      font-weight: 700;
+      display: none;
+      z-index: 100;
+      box-shadow: 0 4px 15px rgba(16,185,129,0.4);
+    }
+
+    .toast.show { display: block; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">🔐</div>
+      <div>
+        <div class="logo-text">Mwijay Tech Vault</div>
+        <div class="logo-sub">Passwords · API Keys · Voice Studio</div>
+      </div>
+    </div>
+    <button class="open-app-btn" id="openAppBtn">
+      Web App ↗
+    </button>
+  </div>
+
+  <div class="auth-bar">
+    <div class="auth-info">
+      <div class="auth-dot online" id="authDot"></div>
+      <span id="authText">Davie Mwijay Vault</span>
+    </div>
+    <span class="sync-badge">☁️ Cloud Sync</span>
+  </div>
+
+  <!-- Tab Buttons -->
+  <div class="nav-tabs">
+    <button class="tab-btn active" data-tab="vaultTab">
+      🔐 Vault
+    </button>
+    <button class="tab-btn" data-tab="voiceTab">
+      🎙️ Voice
+    </button>
+    <button class="tab-btn" data-tab="clipsTab">
+      📋 Web Clips
+    </button>
+  </div>
+
+  <!-- TAB 1: VAULT & PASSWORDS -->
+  <div class="tab-content active" id="vaultTab">
+    <div class="add-vault-header">
+      <span class="section-title" style="margin:0">Saved Passwords & Keys</span>
+      <button class="add-btn" id="toggleAddFormBtn">+ Add Secret</button>
+    </div>
+
+    <!-- Add Item Form Modal -->
+    <div class="vault-form-modal" id="vaultFormModal">
+      <div class="form-group">
+        <label class="form-label">Service / Name</label>
+        <input type="text" id="formTitle" class="form-input" placeholder="e.g. OpenAI API Key, GitHub Password" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Category</label>
+        <select id="formCategory" class="form-select">
+          <option value="api-key">⚡ API Key</option>
+          <option value="password">🔑 Password</option>
+          <option value="credential">🔒 Secret / Token</option>
+          <option value="snippet">📄 Web Snippet</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Secret Value / Password</label>
+        <input type="password" id="formValue" class="form-input" placeholder="Paste key, password, or token..." />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Username / Notes (Optional)</label>
+        <input type="text" id="formNotes" class="form-input" placeholder="e.g. user@email.com or key notes" />
+      </div>
+      <div class="form-actions">
+        <button class="action-btn" id="cancelFormBtn">Cancel</button>
+        <button class="action-btn primary" id="saveFormBtn">Save Secret ✓</button>
+      </div>
+    </div>
+
+    <!-- Search & Filters -->
+    <div class="vault-toolbar">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="vaultSearch" class="search-input" placeholder="Search passwords, API keys..." />
+      </div>
+      <div class="category-filter">
+        <span class="filter-chip active" data-cat="all">All</span>
+        <span class="filter-chip" data-cat="api-key">⚡ API Keys</span>
+        <span class="filter-chip" data-cat="password">🔑 Passwords</span>
+        <span class="filter-chip" data-cat="credential">🔒 Secrets</span>
+        <span class="filter-chip" data-cat="snippet">📄 Snippets</span>
+      </div>
+    </div>
+
+    <!-- Vault Card List Container -->
+    <div class="vault-list" id="vaultList">
+      <div class="empty-state">
+        <div class="empty-state-icon">🔐</div>
+        <p>No passwords or API keys stored yet.</p>
+        <p style="font-size: 9px; margin-top: 4px;">Click <b>+ Add Secret</b> or right-click text on any web page!</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: VOICE STUDIO -->
+  <div class="tab-content" id="voiceTab">
+    <div class="section-title">🎙️ Swahili & English Dictation</div>
+    <div class="lang-selector">
+      <button class="lang-btn" data-lang="sw-KE">🇹🇿 Swahili</button>
+      <button class="lang-btn active" data-lang="auto">🌍 Auto</button>
+      <button class="lang-btn" data-lang="en-US">🇺🇸 English</button>
+    </div>
+
+    <div class="mic-container">
+      <button class="mic-btn" id="micBtn">🎤</button>
+      <p class="mic-status" id="micStatus">Click mic or press <span class="kbd">Alt+M</span></p>
+    </div>
+
+    <textarea class="transcript-area" id="transcriptArea" placeholder="Transcript appears here... Andika itaonekana hapa" rows="3"></textarea>
+
+    <div class="action-row">
+      <button class="action-btn" id="insertBtn" disabled>📥 Insert</button>
+      <button class="action-btn" id="copyBtn" disabled>📋 Copy</button>
+      <button class="action-btn primary" id="saveVaultBtn" disabled>🔐 Save to Vault</button>
+    </div>
+
+    <div class="section-title" style="margin-top: 14px">🔊 Read Aloud — Soma Kwa Sauti</div>
+    <textarea class="tts-input" id="ttsInput" placeholder="Paste text or select on page..." rows="2"></textarea>
+    <div class="action-row">
+      <button class="action-btn" id="readSelectedBtn">📖 Read selected</button>
+      <button class="action-btn primary" id="speakBtn">▶ Speak</button>
+      <button class="action-btn" id="stopSpeakBtn">⏹ Stop</button>
+    </div>
+  </div>
+
+  <!-- TAB 3: WEB CLIPPINGS -->
+  <div class="tab-content" id="clipsTab">
+    <div class="section-title">📋 Web Lookup & Copied Clippings</div>
+    <div class="vault-list" id="clipsList">
+      <div class="empty-state">
+        <div class="empty-state-icon">📋</div>
+        <p>No web snippets saved yet.</p>
+        <p style="font-size: 9px; margin-top: 4px;">Highlight text on any site and right-click "Save Web Snippet"!</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span class="footer-text">Mwijay Tech Vault v1.1.0</span>
+    <span class="footer-text">Dictate: <span class="kbd">Alt+M</span></span>
+  </div>
+
+  <div class="toast" id="toast">✅ Saved!</div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,93 +1,84 @@
 'use client'
 
-import { useState } from 'react'
-import { ChevronDown, Sparkles } from 'lucide-react'
+import { ChevronDown, Zap, DollarSign } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { AIProviderModel } from '@/lib/ai-provider-catalog'
+import { getProviderModels } from '@/lib/ai-provider-catalog'
+import type { AIProvider } from '@/types/ai'
 
 interface ModelSelectorProps {
-  models: AIProviderModel[]
-  value: string
-  onChange: (modelId: string) => void
-  label?: string
+  provider: AIProvider
+  selectedModel: string
+  onSelect: (modelId: string) => void
   disabled?: boolean
+  className?: string
 }
 
-export default function ModelSelector({
-  models,
-  value,
-  onChange,
-  label = 'Default Model',
+export function ModelSelector({
+  provider,
+  selectedModel,
+  onSelect,
   disabled = false,
+  className,
 }: ModelSelectorProps) {
-  const [isOpen, setIsOpen] = useState(false)
+  const models = getProviderModels(provider)
 
-  const selectedModel = models.find((m) => m.id === value)
+  if (models.length === 0) return null
+
+  const selected = models.find(m => m.id === selectedModel) ?? models[0]
 
   return (
-    <div className="space-y-2">
-      <label className="text-sm font-medium text-gray-200">{label}</label>
+    <div className={cn('space-y-1.5', className)}>
+      <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">
+        Preferred Model
+      </label>
+
       <div className="relative">
-        <button
-          type="button"
-          onClick={() => !disabled && setIsOpen(!isOpen)}
-          onBlur={() => setTimeout(() => setIsOpen(false), 200)}
+        <select
+          value={selectedModel || selected.id}
+          onChange={(e) => onSelect(e.target.value)}
           disabled={disabled}
           className={cn(
-            'w-full flex items-center justify-between gap-2 px-4 py-2.5 rounded-lg border text-sm transition-all duration-200',
-            disabled
-              ? 'border-white/5 bg-white/[0.02] text-gray-600 cursor-not-allowed'
-              : 'border-white/10 bg-white/5 hover:bg-white/[0.07] text-white cursor-pointer',
-            isOpen && 'border-purple-500/50 ring-1 ring-purple-500/20'
+            'w-full px-4 py-2.5 pr-10 rounded-xl text-sm',
+            'bg-black/40 border border-white/10 appearance-none',
+            'text-white focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/30',
+            'transition-all duration-200 cursor-pointer',
+            disabled && 'opacity-50 cursor-not-allowed'
           )}
         >
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-purple-400" />
-            <span className={cn(disabled && 'text-gray-600')}>
-              {selectedModel?.label ?? 'Select a model'}
-            </span>
-          </div>
-          <ChevronDown
-            className={cn(
-              'w-4 h-4 text-gray-500 transition-transform duration-200',
-              isOpen && 'rotate-180'
-            )}
-          />
-        </button>
+          {models.map((model) => (
+            <option
+              key={model.id}
+              value={model.id}
+              className="bg-gray-900 text-white py-1"
+            >
+              {model.name}
+              {model.costPer1kTokens === 0 ? ' (Free)' : ''}
+            </option>
+          ))}
+        </select>
 
-        {isOpen && !disabled && (
-          <div className="absolute z-50 mt-1 w-full rounded-lg border border-white/10 bg-gray-900/95 backdrop-blur-xl shadow-xl shadow-black/40 overflow-hidden">
-            {models.map((model) => (
-              <button
-                key={model.id}
-                type="button"
-                onClick={() => {
-                  onChange(model.id)
-                  setIsOpen(false)
-                }}
-                className={cn(
-                  'w-full flex items-center gap-3 px-4 py-3 text-left text-sm transition-colors',
-                  model.id === value
-                    ? 'bg-purple-500/10 text-purple-300'
-                    : 'text-gray-400 hover:text-white hover:bg-white/5'
-                )}
-              >
-                <div className="flex-1">
-                  <div className="font-medium">{model.label}</div>
-                  {model.description && (
-                    <div className="text-xs text-gray-500 mt-0.5">
-                      {model.description}
-                    </div>
-                  )}
-                </div>
-                {model.id === value && (
-                  <div className="w-1.5 h-1.5 rounded-full bg-purple-400" />
-                )}
-              </button>
-            ))}
-          </div>
-        )}
+        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
       </div>
+
+      {selected && (
+        <div className="flex items-center gap-3 text-[10px] text-gray-400">
+          <span className="flex items-center gap-1 font-mono">
+            <Zap className="w-2.5 h-2.5 text-yellow-400" />
+            {(selected.contextLength / 1000).toFixed(0)}k ctx
+          </span>
+          <span className="flex items-center gap-1 font-mono">
+            <DollarSign className="w-2.5 h-2.5 text-emerald-400" />
+            {selected.costPer1kTokens === 0
+              ? 'Free'
+              : `$${selected.costPer1kTokens}/1k tokens`}
+          </span>
+          {selected.supportsStreaming && (
+            <span className="text-emerald-400">Streaming ✓</span>
+          )}
+        </div>
+      )}
     </div>
   )
 }
+
+export default ModelSelector

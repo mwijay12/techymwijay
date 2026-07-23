@@ -1,79 +1,96 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Minus, Maximize2, X, Monitor } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { useEffect } from 'react'
+import { Minus, Square, Maximize2, X, Monitor, WifiOff } from 'lucide-react'
+import { useElectron } from '@/hooks/use-electron'
 
-declare global {
-  interface Window {
-    electronAPI?: {
-      minimize: () => void
-      maximize: () => void
-      close: () => void
-      isMaximized: () => Promise<boolean>
-      onMaximizeChange: (callback: (isMax: boolean) => void) => void
-      isElectron: boolean
-      getVersion: () => Promise<string>
-    }
-  }
-}
-
-export default function ElectronTitleBar() {
-  const [isMaximized, setIsMaximized] = useState(false)
-  const [version, setVersion] = useState('')
-  const [isElectron, setIsElectron] = useState(false)
+export function ElectronTitleBar() {
+  const {
+    isElectron,
+    platform,
+    isOnline,
+    isMaximized,
+    appVersion,
+    minimize,
+    maximize,
+    close,
+  } = useElectron()
 
   useEffect(() => {
-    const electronDetected = typeof window !== 'undefined' && window.electronAPI?.isElectron
-    setIsElectron(electronDetected)
-    
-    // Add class to body for Electron-specific styling
-    if (electronDetected) {
+    if (isElectron) {
       document.body.classList.add('electron-mode')
-      window.electronAPI?.isMaximized().then(setIsMaximized)
-      window.electronAPI?.onMaximizeChange(setIsMaximized)
-      window.electronAPI?.getVersion().then(setVersion)
     }
-    
     return () => {
       document.body.classList.remove('electron-mode')
     }
-  }, [])
+  }, [isElectron])
 
   if (!isElectron) return null
 
+  const isMac = platform === 'darwin'
+
   return (
-    <div className="fixed top-0 left-0 right-0 h-10 z-[9999] flex items-center justify-between bg-black/90 backdrop-blur-xl border-b border-white/10 select-none"
-      style={{ ['-webkit-app-region' as string]: 'drag' }}
+    <div
+      className="fixed top-0 left-0 right-0 h-9 z-[9999] flex items-center justify-between bg-black/90 backdrop-blur-xl border-b border-white/10 select-none"
+      style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
     >
-      {/* App title - draggable */}
       <div className="flex items-center gap-2 pl-4">
-        <Monitor className="w-3.5 h-3.5 text-emerald-400" />
-        <span className="text-xs text-gray-400 font-medium">Mwijay Tech</span>
-        {version && <span className="text-[10px] text-gray-600">v{version}</span>}
+        <Monitor className="w-3.5 h-3.5 text-purple-400" />
+        <span className="text-xs text-gray-300 font-semibold">Mwijay Tech</span>
+        <span className="text-[10px] text-gray-500 font-mono">v{appVersion}</span>
       </div>
 
-      {/* Window controls - no drag */}
-      <div className="flex h-full" style={{ ['-webkit-app-region' as string]: 'no-drag' }}>
-        <button
-          onClick={() => window.electronAPI?.minimize()}
-          className="px-4 h-full hover:bg-white/10 transition-colors text-gray-400 hover:text-white"
-        >
-          <Minus className="w-3.5 h-3.5" />
-        </button>
-        <button
-          onClick={() => window.electronAPI?.maximize()}
-          className="px-4 h-full hover:bg-white/10 transition-colors text-gray-400 hover:text-white"
-        >
-          <Maximize2 className="w-3 h-3" />
-        </button>
-        <button
-          onClick={() => window.electronAPI?.close()}
-          className="px-4 h-full hover:bg-red-500 transition-colors text-gray-400 hover:text-white"
-        >
-          <X className="w-3.5 h-3.5" />
-        </button>
+      <div
+        className="flex items-center gap-2"
+        style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+      >
+        {isOnline ? (
+          <div className="flex items-center gap-1 text-emerald-400 text-[10px] font-mono">
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            <span className="hidden sm:inline">Online</span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1 text-red-400 text-[10px] font-mono">
+            <WifiOff className="w-3 h-3" />
+            <span className="hidden sm:inline">Offline</span>
+          </div>
+        )}
       </div>
+
+      {!isMac && (
+        <div
+          className="flex h-full"
+          style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+        >
+          <button
+            onClick={minimize}
+            title="Minimize"
+            className="px-4 h-full hover:bg-white/10 transition-colors text-gray-400 hover:text-white flex items-center justify-center"
+          >
+            <Minus className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={maximize}
+            title={isMaximized ? 'Restore' : 'Maximize'}
+            className="px-4 h-full hover:bg-white/10 transition-colors text-gray-400 hover:text-white flex items-center justify-center"
+          >
+            {isMaximized ? (
+              <Square className="w-3 h-3" />
+            ) : (
+              <Maximize2 className="w-3 h-3" />
+            )}
+          </button>
+          <button
+            onClick={close}
+            title="Close"
+            className="px-4 h-full hover:bg-red-500 transition-colors text-gray-400 hover:text-white flex items-center justify-center"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
     </div>
   )
 }
+
+export default ElectronTitleBar

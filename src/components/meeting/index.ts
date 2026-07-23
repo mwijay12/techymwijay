@@ -1,9 +1,2 @@
-export { MeetingShell } from './MeetingShell'
-export { MeetingCaptionDisplay } from './MeetingCaptionDisplay'
-export { MeetingControls } from './MeetingControls'
-export { MeetingTimer } from './MeetingTimer'
-export { MeetingSegment } from './MeetingSegment'
-export { MeetingTranscriptLog } from './MeetingTranscriptLog'
-export { MeetingSessionSummary } from './MeetingSessionSummary'
-export { MeetingLanguagePicker } from './MeetingLanguagePicker'
-export { MeetingDualPane } from './MeetingDualPane'
+// Meeting components module index
+export {}

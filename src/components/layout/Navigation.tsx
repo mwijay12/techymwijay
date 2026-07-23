@@ -1,129 +1,387 @@
 'use client'
 
-import { useState, useEffect } from "react"
-import { Code2, Menu, X, MessageSquare, Sparkles, Video } from "lucide-react"
-import Link from "next/link"
-import { motion, AnimatePresence } from "framer-motion"
-import { UserAvatar } from "@/components/auth/UserAvatar"
-import { SyncStatus } from "@/components/auth/SyncStatus"
+import { useState, useEffect, useRef } from 'react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { motion, AnimatePresence } from 'framer-motion'
+import {
+  Home,
+  Mic,
+  Volume2,
+  Video,
+  Shield,
+  Wallet,
+  CheckSquare,
+  Brain,
+  Settings,
+  Menu,
+  X,
+  Zap,
+  HeartPulse,
+} from 'lucide-react'
+import { UserAvatar } from '@/components/auth/UserAvatar'
+import { SyncStatus } from '@/components/auth/SyncStatus'
+import { SyncStatusBadge } from '@/components/pwa/SyncStatusBadge'
+import { cn } from '@/lib/utils'
 
-const navLinks = [
-  { name: "Home", href: "/" },
-  { name: "Services", href: "/services" },
-  { name: "Pricing", href: "/pricing" },
-  { name: "AI TTS", href: "/ai-tts" },
-  { name: "AI STT", href: "/ai-stt" },
-  { name: "Meeting", href: "/meeting" },
-  { name: "Blog", href: "/blog" },
-  { name: "Contact", href: "/contact" },
-  { name: "Settings", href: "/settings" },
-]
+// ─── Route Definitions ─────────────────────────────────────
+const NAV_ROUTES = [
+  { href: '/',         label: 'Home',     icon: Home,        group: 'main'     },
+  { href: '/ai-stt',   label: 'Dictate',  icon: Mic,         group: 'voice'    },
+  { href: '/ai-tts',   label: 'Voice',    icon: Volume2,     group: 'voice'    },
+  { href: '/meeting',  label: 'Meeting',  icon: Video,       group: 'voice'    },
+  { href: '/blog',     label: 'Vault',    icon: Shield,      group: 'vault'    },
+  { href: '/spending', label: 'Spending', icon: Wallet,      group: 'life'     },
+  { href: '/todos',    label: 'Todos',    icon: CheckSquare, group: 'life'     },
+  { href: '/memory',   label: 'Memory',   icon: Brain,       group: 'ai'       },
+  { href: '/settings', label: 'Settings', icon: Settings,    group: 'system'   },
+] as const
 
-export default function Navigation({ onOpenChat }: { onOpenChat: () => void }) {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+const PRIMARY_NAV = ['/ai-stt', '/ai-tts', '/blog', '/spending', '/todos', '/meeting']
+
+export function Navigation({ onOpenChat }: { onOpenChat?: () => void }) {
+  const pathname = usePathname()
+  const [mobileOpen, setMobileOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [isElectron, setIsElectron] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
 
+  // Detect Electron
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20)
+    if (typeof window !== 'undefined' && window.electronAPI?.isElectron) {
+      setIsElectron(true)
     }
+  }, [])
+
+  // Scroll detection for nav opacity
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20)
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileOpen(false)
+  }, [pathname])
+
+  // Close on outside click
+  useEffect(() => {
+    const handleOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMobileOpen(false)
+      }
+    }
+    if (mobileOpen) {
+      document.addEventListener('mousedown', handleOutside)
+    }
+    return () => document.removeEventListener('mousedown', handleOutside)
+  }, [mobileOpen])
+
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => { document.body.style.overflow = '' }
+  }, [mobileOpen])
+
+  const isActive = (href: string) => {
+    if (href === '/') return pathname === '/'
+    return pathname.startsWith(href)
+  }
+
   return (
-    <motion.nav 
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
-      className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-        scrolled 
-          ? 'bg-black/80 backdrop-blur-xl border-b border-white/10 shadow-lg shadow-black/20' 
-          : 'bg-transparent'
-      }`}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
-          <Link href="/" className="flex items-center gap-3 group">
-            <motion.div 
-              className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/25"
-              whileHover={{ scale: 1.1, rotate: -5 }}
-              transition={{ type: "spring", stiffness: 400, damping: 10 }}
+    <>
+      {/* ── Main Navigation Bar ──────────────────────────── */}
+      <nav
+        className={cn(
+          'fixed left-0 right-0 z-50 transition-all duration-300',
+          isElectron ? 'top-9' : 'top-0',
+          scrolled
+            ? 'bg-brand-dark/90 backdrop-blur-xl border-b border-white/10 shadow-2xl'
+            : 'bg-transparent'
+        )}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+
+            {/* ── Logo ──────────────────────────────────── */}
+            <Link
+              href="/"
+              className="flex items-center gap-2.5 group flex-shrink-0"
             >
-              <Code2 className="w-6 h-6 text-white" />
-            </motion.div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
-              Mwijay Tech
-            </span>
-          </Link>
-          
-          <div className="hidden md:flex items-center gap-1">
-            {navLinks.map((item) => (
+              <div className="relative w-8 h-8 rounded-xl bg-gradient-brand 
+                flex items-center justify-center shadow-lg
+                group-hover:glow-primary transition-all duration-300">
+                <Zap className="w-4 h-4 text-white" />
+              </div>
+              <div className="hidden sm:block">
+                <span className="text-sm font-bold gradient-text">
+                  Mwijay Tech
+                </span>
+                <div className="text-[10px] text-brand-muted leading-none -mt-0.5">
+                  AI Voice Studio
+                </div>
+              </div>
+            </Link>
+
+            {/* ── Desktop Navigation Links ──────────────── */}
+            <div className="hidden lg:flex items-center gap-1">
+              {NAV_ROUTES.filter(r => PRIMARY_NAV.includes(r.href)).map((route) => {
+                const Icon = route.icon
+                const active = isActive(route.href)
+
+                return (
+                  <Link
+                    key={route.href}
+                    href={route.href}
+                    className={cn(
+                      'relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg',
+                      'text-sm font-medium transition-all duration-200',
+                      active
+                        ? 'text-brand-primary bg-brand-primary/10 border border-brand-primary/20'
+                        : 'text-brand-muted hover:text-brand-text hover:bg-white/5'
+                    )}
+                  >
+                    <Icon className="w-3.5 h-3.5" />
+                    <span>{route.label}</span>
+
+                    {active && (
+                      <motion.div
+                        layoutId="nav-active-dot"
+                        className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 
+                          w-1 h-1 rounded-full bg-brand-primary"
+                        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                      />
+                    )}
+                  </Link>
+                )
+              })}
+
+              <div className="w-px h-4 bg-brand-border mx-1" />
+              {NAV_ROUTES.filter(r =>
+                ['/memory', '/settings'].includes(r.href)
+              ).map((route) => {
+                const Icon = route.icon
+                const active = isActive(route.href)
+
+                return (
+                  <Link
+                    key={route.href}
+                    href={route.href}
+                    className={cn(
+                      'flex items-center gap-1.5 px-3 py-1.5 rounded-lg',
+                      'text-sm font-medium transition-all duration-200',
+                      active
+                        ? 'text-brand-primary bg-brand-primary/10 border border-brand-primary/20'
+                        : 'text-brand-muted hover:text-brand-text hover:bg-white/5'
+                    )}
+                  >
+                    <Icon className="w-3.5 h-3.5" />
+                    <span>{route.label}</span>
+                  </Link>
+                )
+              })}
+            </div>
+
+            {/* ── Right Side: Sync + Avatar + Menu Button ── */}
+            <div className="flex items-center gap-2 sm:gap-3">
               <Link
-                key={item.name}
-                href={item.href}
-                className="relative px-4 py-2 text-sm font-medium text-gray-400 hover:text-white transition-colors rounded-full hover:bg-white/5 group"
+                href="/health"
+                className="p-1.5 rounded-lg border border-white/5 bg-white/5 hover:bg-white/10 hover:text-rose-400 transition-all"
+                title="System Health & Verification"
               >
-                {item.name}
-                <span className="absolute inset-x-4 bottom-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
+                <HeartPulse className="w-3.5 h-3.5" />
               </Link>
-            ))}
-            <motion.button 
-              onClick={onOpenChat}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="ml-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 shadow-lg shadow-blue-500/25 flex items-center gap-2"
-            >
-              <span className="w-4 h-4 flex items-center justify-center">💬</span>
-              Chat
-            </motion.button>
-            <div className="flex items-center gap-2 ml-3">
-              <SyncStatus />
+              <SyncStatusBadge />
               <UserAvatar />
+
+              {/* Mobile menu toggle */}
+              <button
+                onClick={() => setMobileOpen(!mobileOpen)}
+                className="lg:hidden flex items-center justify-center 
+                  w-9 h-9 rounded-xl glass hover:bg-white/10
+                  transition-all duration-200 text-brand-muted 
+                  hover:text-brand-text"
+                aria-label="Toggle menu"
+              >
+                <AnimatePresence mode="wait">
+                  {mobileOpen ? (
+                    <motion.div
+                      key="close"
+                      initial={{ rotate: -90, opacity: 0 }}
+                      animate={{ rotate: 0, opacity: 1 }}
+                      exit={{ rotate: 90, opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                    >
+                      <X className="w-4 h-4" />
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="menu"
+                      initial={{ rotate: 90, opacity: 0 }}
+                      animate={{ rotate: 0, opacity: 1 }}
+                      exit={{ rotate: -90, opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                    >
+                      <Menu className="w-4 h-4" />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </button>
             </div>
           </div>
-
-          <button
-            className="md:hidden text-white p-2 hover:bg-white/5 rounded-lg transition-colors"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
         </div>
-      </div>
+      </nav>
 
+      {/* ── Mobile Navigation Drawer ─────────────────────── */}
       <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div 
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2 }}
-            className="md:hidden bg-black/95 backdrop-blur-xl border-b border-white/10 overflow-hidden"
-          >
-            <div className="px-4 py-6 space-y-2">
-              {navLinks.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className="block text-gray-400 hover:text-white hover:bg-white/5 transition-all px-4 py-3 rounded-xl text-lg"
-                  onClick={() => setMobileMenuOpen(false)}
+        {mobileOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+              onClick={() => setMobileOpen(false)}
+            />
+
+            {/* Drawer */}
+            <motion.div
+              ref={menuRef}
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              className={cn(
+                'fixed right-0 bottom-0 z-50 w-72',
+                'bg-brand-surface border-l border-brand-border',
+                'flex flex-col shadow-2xl lg:hidden',
+                isElectron ? 'top-9' : 'top-0'
+              )}
+            >
+              {/* Drawer header */}
+              <div className="flex items-center justify-between px-5 py-4 
+                border-b border-brand-border">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-lg bg-gradient-brand 
+                    flex items-center justify-center">
+                    <Zap className="w-3 h-3 text-white" />
+                  </div>
+                  <span className="font-semibold gradient-text text-sm">
+                    Navigation
+                  </span>
+                </div>
+                <button
+                  onClick={() => setMobileOpen(false)}
+                  className="w-7 h-7 rounded-lg glass flex items-center 
+                    justify-center text-brand-muted hover:text-brand-text"
                 >
-                  {item.name}
-                </Link>
-              ))}
-              <motion.button 
-                onClick={() => { onOpenChat(); setMobileMenuOpen(false) }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3.5 rounded-xl font-semibold text-lg mt-4 flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25"
-              >
-                <Sparkles className="w-5 h-5" />
-                Let's Talk
-              </motion.button>
-            </div>
-          </motion.div>
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              {/* Route groups */}
+              <div className="flex-1 overflow-y-auto py-3 px-3 space-y-6">
+                <MobileNavGroup
+                  label="Voice Studio"
+                  routes={NAV_ROUTES.filter(r =>
+                    ['/', '/ai-stt', '/ai-tts', '/meeting'].includes(r.href)
+                  )}
+                  isActive={isActive}
+                />
+                <MobileNavGroup
+                  label="Developer Vault"
+                  routes={NAV_ROUTES.filter(r => r.href === '/blog')}
+                  isActive={isActive}
+                />
+                <MobileNavGroup
+                  label="Personal"
+                  routes={NAV_ROUTES.filter(r =>
+                    ['/spending', '/todos'].includes(r.href)
+                  )}
+                  isActive={isActive}
+                />
+                <MobileNavGroup
+                  label="AI & System"
+                  routes={NAV_ROUTES.filter(r =>
+                    ['/memory', '/settings'].includes(r.href)
+                  )}
+                  isActive={isActive}
+                />
+              </div>
+
+              {/* Drawer footer */}
+              <div className="px-4 py-4 border-t border-brand-border">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-brand-muted">
+                    Mwijay Tech v1.0.0
+                  </span>
+                  <SyncStatus />
+                </div>
+                <p className="text-[10px] text-brand-muted/50 mt-1">
+                  Built with ❤️ in Tanzania 🇹🇿
+                </p>
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
-    </motion.nav>
+    </>
   )
 }
+
+function MobileNavGroup({
+  label,
+  routes,
+  isActive,
+}: {
+  label: string
+  routes: typeof NAV_ROUTES[number][]
+  isActive: (href: string) => boolean
+}) {
+  return (
+    <div>
+      <p className="text-[10px] font-semibold uppercase tracking-widest 
+        text-brand-muted/60 px-2 mb-1.5">
+        {label}
+      </p>
+      <div className="space-y-0.5">
+        {routes.map((route) => {
+          const Icon = route.icon
+          const active = isActive(route.href)
+
+          return (
+            <Link
+              key={route.href}
+              href={route.href}
+              className={cn(
+                'flex items-center gap-3 px-3 py-2.5 rounded-xl',
+                'text-sm font-medium transition-all duration-150',
+                active
+                  ? 'text-brand-primary bg-brand-primary/10 border border-brand-primary/20'
+                  : 'text-brand-text hover:bg-white/5 hover:text-brand-primary'
+              )}
+            >
+              <Icon className={cn(
+                'w-4 h-4 flex-shrink-0',
+                active ? 'text-brand-primary' : 'text-brand-muted'
+              )} />
+              <span>{route.label}</span>
+              {active && (
+                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-brand-primary" />
+              )}
+            </Link>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+export default Navigation

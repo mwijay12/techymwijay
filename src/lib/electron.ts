@@ -31,9 +31,9 @@ export function getElectronAPI() {
  */
 export async function getElectronVersion(): Promise<string | null> {
   const api = getElectronAPI()
-  if (!api || !api.getVersion) return null
+  if (!api || !api.getAppVersion) return null
   try {
-    return await api.getVersion()
+    return await api.getAppVersion()
   } catch {
     return null
   }
