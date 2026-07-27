@@ -362,14 +362,18 @@ export function useTTS(): UseTTSReturn {
           if (found) utterance.voice = found
         } else {
           const swVoice = browserVoices.find(v => v.lang.startsWith('sw'))
-          const enVoice = browserVoices.find(v => v.lang.startsWith('en'))
-          utterance.voice = swVoice ?? enVoice ?? null
+          const naturalEnVoice = browserVoices.find(v =>
+            (v.lang.startsWith('en') || v.lang.startsWith('en-')) &&
+            (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Online'))
+          )
+          const fallbackEnVoice = browserVoices.find(v => v.lang.startsWith('en'))
+          utterance.voice = swVoice ?? naturalEnVoice ?? fallbackEnVoice ?? null
         }
 
         utterance.rate = speed
         utterance.pitch = pitch
         utterance.volume = 1.0
-        utterance.lang = 'sw-KE'
+        utterance.lang = utterance.voice ? utterance.voice.lang : 'sw-KE'
 
         utterance.onstart = () => {
           setActiveEngine('browser')

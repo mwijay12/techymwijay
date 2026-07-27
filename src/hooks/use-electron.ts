@@ -244,7 +244,7 @@ export function useElectron(): UseElectronReturn {
 
   return {
     isElectron,
-    platform: window.electronAPI?.platform ?? 'web',
+    platform: typeof window !== 'undefined' ? window.electronAPI?.platform ?? 'web' : 'web',
     isOnline,
     isMaximized,
     appVersion,

@@ -21,8 +21,9 @@
   "build": {
     "appId": "com.mwijaytech.app",
     "productName": "Mwijay Tech",
+    "asar": true,
     "directories": {
-      "output": "release"
+      "output": "C:/mwijay-dist"
     },
     "files": [
       "out/**/*",
@@ -109,7 +110,7 @@
     "autoprefixer": "^10.4.17",
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
-    "electron": "^42.4.1",
+    "electron": "30.0.0",
     "electron-builder": "^26.15.3",
     "eslint": "^8.57.0",
     "eslint-config-next": "^14.2.0",

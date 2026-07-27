@@ -16,7 +16,7 @@ const inter = Inter({
   preload: true,
 });
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://mwijaytech.vercel.app";
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://techymwijay.vercel.app";
 
 export const viewport: Viewport = {
   width: "device-width",

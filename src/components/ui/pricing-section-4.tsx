@@ -1,13 +1,17 @@
 "use client";
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-
 import { TimelineContent } from "@/components/ui/timeline-animation";
 import { VerticalCutReveal } from "@/components/ui/vertical-cut-reveal";
 import { cn } from "@/lib/utils";
-import NumberFlow from "@number-flow/react";
-import { motion } from "motion/react";
+import dynamic from "next/dynamic";
+import { motion } from "framer-motion";
 import { useRef, useState } from "react";
+
+const NumberFlow = dynamic(() => import("@number-flow/react"), {
+  ssr: false,
+  loading: () => <span>0</span>,
+});
 
 const plans = [
   {
@@ -23,294 +27,184 @@ const plans = [
       "Unlimted Cards",
       "Custom background & stickers",
       "2-factor authentication",
-      "Free includes:",
-      "Unlimted Cards",
-      "Custom background & stickers",
-      "2-factor authentication",
     ],
   },
   {
     name: "Business",
     description:
-      "Best value for growing businesses that need more advanced features",
-    price: 48,
-    yearlyPrice: 399,
+      "For medium to large businesses looking to scale their AI workflow",
+    price: 32,
+    yearlyPrice: 299,
     buttonText: "Get started",
     buttonVariant: "default" as const,
     popular: true,
     includes: [
       "Everything in Starter, plus:",
-      "Advanced checklists",
-      "Custom fields",
-      "Servedless functions",
-      "Everything in Starter, plus:",
-      "Advanced checklists",
-      "Custom fields",
-      "Servedless functions",
+      "Priority AI processing",
+      "Custom voice models",
+      "Dedicated account manager",
     ],
   },
   {
     name: "Enterprise",
     description:
-      "Advanced plan with enhanced security and unlimited access for large teams",
-    price: 96,
-    yearlyPrice: 899,
-    buttonText: "Get started",
+      "Customized AI voice and automation solutions for high-volume needs",
+    price: 72,
+    yearlyPrice: 699,
+    buttonText: "Contact sales",
     buttonVariant: "outline" as const,
     includes: [
       "Everything in Business, plus:",
-      "Multi-board management",
-      "Multi-board guest",
-      "Attachment permissions",
-      "Everything in Business, plus:",
-      "Multi-board management",
-      "Multi-board guest",
-      "Attachment permissions",
+      "Custom SLA & uptime guarantee",
+      "On-premise deployment option",
+      "Unlimited seats & vault entries",
     ],
   },
 ];
 
-const PricingSwitch = ({ onSwitch }: { onSwitch: (value: string) => void }) => {
-  const [selected, setSelected] = useState("0");
+function PricingSwitch({ onSwitch }: { onSwitch: (val: string) => void }) {
+  const [activeTab, setActiveTab] = useState<"monthly" | "yearly">("monthly");
 
-  const handleSwitch = (value: string) => {
-    setSelected(value);
-    onSwitch(value);
+  const handleTabChange = (tab: "monthly" | "yearly") => {
+    setActiveTab(tab);
+    onSwitch(tab);
   };
 
   return (
-    <div className="flex justify-center">
-      <div className="relative z-10 mx-auto flex w-fit rounded-full bg-neutral-900 border border-gray-700 p-1">
+    <div className="flex justify-center mb-8">
+      <div className="bg-[#151728] p-1.5 rounded-full border border-white/10 flex items-center relative gap-1">
         <button
-          onClick={() => handleSwitch("0")}
+          onClick={() => handleTabChange("monthly")}
           className={cn(
-            "relative z-10 w-fit h-10 rounded-full sm:px-6 px-3 sm:py-2 py-1 font-medium transition-colors",
-            selected === "0" ? "text-white" : "text-gray-200",
+            "px-5 py-2 text-sm font-semibold rounded-full transition-colors relative z-10",
+            activeTab === "monthly" ? "text-white" : "text-gray-400 hover:text-white"
           )}
         >
-          {selected === "0" && (
-            <motion.span
-              layoutId={"switch"}
-              className="absolute top-0 left-0 h-10 w-full rounded-full border-4 shadow-sm shadow-blue-600 border-blue-600 bg-gradient-to-t from-blue-500 to-blue-600"
-              transition={{ type: "spring", stiffness: 500, damping: 30 }}
+          {activeTab === "monthly" && (
+            <motion.div
+              layoutId="pricing-tab"
+              className="absolute inset-0 bg-violet-600 rounded-full -z-10"
+              transition={{ type: "spring", stiffness: 400, damping: 30 }}
             />
           )}
-          <span className="relative">Monthly</span>
+          Monthly
         </button>
-
         <button
-          onClick={() => handleSwitch("1")}
+          onClick={() => handleTabChange("yearly")}
           className={cn(
-            "relative z-10 w-fit h-10 flex-shrink-0 rounded-full sm:px-6 px-3 sm:py-2 py-1 font-medium transition-colors",
-            selected === "1" ? "text-white" : "text-gray-200",
+            "px-5 py-2 text-sm font-semibold rounded-full transition-colors relative z-10 flex items-center gap-1.5",
+            activeTab === "yearly" ? "text-white" : "text-gray-400 hover:text-white"
           )}
         >
-          {selected === "1" && (
-            <motion.span
-              layoutId={"switch"}
-              className="absolute top-0 left-0 h-10 w-full rounded-full border-4 shadow-sm shadow-blue-600 border-blue-600 bg-gradient-to-t from-blue-500 to-blue-600"
-              transition={{ type: "spring", stiffness: 500, damping: 30 }}
+          {activeTab === "yearly" && (
+            <motion.div
+              layoutId="pricing-tab"
+              className="absolute inset-0 bg-violet-600 rounded-full -z-10"
+              transition={{ type: "spring", stiffness: 400, damping: 30 }}
             />
           )}
-          <span className="relative flex items-center gap-2">Yearly</span>
+          <span>Yearly</span>
+          <span className="bg-emerald-500/20 text-emerald-300 text-[10px] px-2 py-0.5 rounded-full font-mono border border-emerald-500/30">
+            Save 20%
+          </span>
         </button>
-      </div>
-    </div>
-  );
-};
-
-export default function PricingSection6() {
-  const [isYearly, setIsYearly] = useState(false);
-  const pricingRef = useRef<HTMLDivElement>(null);
-
-  const revealVariants = {
-    visible: (i: number) => ({
-      y: 0,
-      opacity: 1,
-      filter: "blur(0px)",
-      transition: {
-        delay: i * 0.4,
-        duration: 0.5,
-      },
-    }),
-    hidden: {
-      filter: "blur(10px)",
-      y: -20,
-      opacity: 0,
-    },
-  };
-
-  const togglePricingPeriod = (value: string) =>
-    setIsYearly(Number.parseInt(value) === 1);
-
-  return (
-    <div
-      className="min-h-screen mx-auto relative bg-black overflow-x-hidden"
-      ref={pricingRef}
-    >
-      <TimelineContent
-        animationNum={4}
-        timelineRef={pricingRef}
-        customVariants={revealVariants}
-        className="absolute top-0 h-96 w-screen overflow-hidden [mask-image:radial-gradient(50%_50%,white,transparent)]"
-      >
-        <div className="absolute bottom-0 left-0 right-0 top-0 bg-[linear-gradient(to_right,#ffffff2c_1px,transparent_1px),linear-gradient(to_bottom,#3a3a3a01_1px,transparent_1px)] bg-[size:70px_80px]"></div>
-        <div className="absolute inset-x-0 bottom-0 h-full w-full [mask-image:radial-gradient(50%_50%,white,transparent_85%)] bg-gradient-to-b from-transparent via-blue-500/5 to-transparent" />
-      </TimelineContent>
-      <TimelineContent
-        animationNum={5}
-        timelineRef={pricingRef}
-        customVariants={revealVariants}
-        className="absolute left-0 top-[-114px] w-full h-[113.625vh] flex flex-col items-start justify-start content-start flex-none flex-nowrap gap-2.5 overflow-hidden p-0 z-0"
-      >
-        <div className="framer-1i5axl2">
-          <div
-            className="absolute left-[-568px] right-[-568px] top-0 h-[2053px] flex-none rounded-full"
-            style={{
-              border: "200px solid #3131f5",
-              filter: "blur(92px)",
-              WebkitFilter: "blur(92px)",
-            }}
-            data-border="true"
-            data-framer-name="Ellipse 1"
-          ></div>
-          <div
-            className="absolute left-[-568px] right-[-568px] top-0 h-[2053px] flex-none rounded-full"
-            style={{
-              border: "200px solid #3131f5",
-              filter: "blur(92px)",
-              WebkitFilter: "blur(92px)",
-            }}
-            data-border="true"
-            data-framer-name="Ellipse 2"
-          ></div>
-        </div>
-      </TimelineContent>
-
-      <article className="text-center mb-6 pt-32 max-w-3xl mx-auto space-y-2 relative z-50">
-        <h2 className="text-4xl font-medium text-white">
-          <VerticalCutReveal
-            splitBy="words"
-            staggerDuration={0.15}
-            staggerFrom="first"
-            reverse={true}
-            containerClassName="justify-center"
-            transition={{
-              type: "spring",
-              stiffness: 250,
-              damping: 40,
-              delay: 0,
-            }}
-          >
-            Plans that works best for your
-          </VerticalCutReveal>
-        </h2>
-
-        <TimelineContent
-          as="p"
-          animationNum={0}
-          timelineRef={pricingRef}
-          customVariants={revealVariants}
-          className="text-gray-300"
-        >
-          Trusted by millions, We help teams all around the world, Explore which
-          option is right for you.
-        </TimelineContent>
-
-        <TimelineContent
-          as="div"
-          animationNum={1}
-          timelineRef={pricingRef}
-          customVariants={revealVariants}
-        >
-          <PricingSwitch onSwitch={togglePricingPeriod} />
-        </TimelineContent>
-      </article>
-
-      <div
-        className="absolute top-0 left-[10%] right-[10%] w-[80%] h-full z-0"
-        style={{
-          backgroundImage: `
-        radial-gradient(circle at center, #206ce8 0%, transparent 70%)
-      `,
-          opacity: 0.6,
-          mixBlendMode: "multiply",
-        }}
-      />
-
-      <div className="grid md:grid-cols-3 max-w-5xl gap-4 py-6 mx-auto">
-        {plans.map((plan, index) => (
-          <TimelineContent
-            key={plan.name}
-            as="div"
-            animationNum={2 + index}
-            timelineRef={pricingRef}
-            customVariants={revealVariants}
-          >
-            <Card
-              className={`relative text-white border-neutral-800 ${
-                plan.popular
-                  ? "bg-gradient-to-r from-neutral-900 via-neutral-800 to-neutral-900 shadow-[0px_-13px_300px_0px_#0900ff] z-20"
-                  : "bg-gradient-to-r from-neutral-900 via-neutral-800 to-neutral-900 z-10"
-              }`}
-            >
-              <CardHeader className="text-left">
-                <div className="flex justify-between">
-                  <h3 className="text-3xl mb-2">{plan.name}</h3>
-                </div>
-                <div className="flex items-baseline">
-                  <span className="text-4xl font-semibold">
-                    $
-                    <NumberFlow
-                      format={{
-                        currency: "USD",
-                        style: "currency",
-                      }}
-                      value={isYearly ? plan.yearlyPrice : plan.price}
-                      className="text-4xl font-semibold"
-                    />
-                  </span>
-                  <span className="text-gray-300 ml-1">
-                    /{isYearly ? "year" : "month"}
-                  </span>
-                </div>
-                <p className="text-sm text-gray-300 mb-4">{plan.description}</p>
-              </CardHeader>
-
-              <CardContent className="pt-0">
-                <button
-                  className={`w-full mb-6 p-4 text-xl rounded-xl ${
-                    plan.popular
-                      ? "bg-gradient-to-t from-blue-500 to-blue-600 shadow-lg shadow-blue-800 border border-blue-500 text-white"
-                      : plan.buttonVariant === "outline"
-                        ? "bg-gradient-to-t from-neutral-950 to-neutral-600 shadow-lg shadow-neutral-900 border border-neutral-800 text-white"
-                        : ""
-                  }`}
-                >
-                  {plan.buttonText}
-                </button>
-
-                <div className="space-y-3 pt-4 border-t border-neutral-700">
-                  <h4 className="font-medium text-base mb-3">
-                    {plan.includes[0]}
-                  </h4>
-                  <ul className="space-y-2">
-                    {plan.includes.slice(1).map((feature, featureIndex) => (
-                      <li
-                        key={featureIndex}
-                        className="flex items-center gap-2"
-                      >
-                        <span className="h-2.5 w-2.5 bg-neutral-500 rounded-full grid place-content-center"></span>
-                        <span className="text-sm text-gray-300">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </CardContent>
-            </Card>
-          </TimelineContent>
-        ))}
       </div>
     </div>
   );
 }
+
+export function PricingSection() {
+  const [isYearly, setIsYearly] = useState(false);
+  const pricingRef = useRef<HTMLDivElement>(null);
+
+  const togglePricingPeriod = (val: string) => {
+    setIsYearly(val === "yearly");
+  };
+
+  return (
+    <section className="py-16 px-4 relative overflow-hidden" ref={pricingRef}>
+      <div className="max-w-4xl mx-auto text-center space-y-4 mb-12">
+        <VerticalCutReveal
+          splitBy="words"
+          staggerDuration={0.025}
+          staggerFrom="first"
+          transition={{
+            type: "spring",
+            stiffness: 250,
+            damping: 40,
+            delay: 0,
+          }}
+        >
+          Plans that work best for your team
+        </VerticalCutReveal>
+
+        <p className="text-gray-300 max-w-xl mx-auto text-sm">
+          Flexible pricing built for developers, creators, and enterprises in Tanzania & globally.
+        </p>
+
+        <PricingSwitch onSwitch={togglePricingPeriod} />
+      </div>
+
+      <div className="grid md:grid-cols-3 max-w-5xl gap-6 mx-auto">
+        {plans.map((plan) => (
+          <Card
+            key={plan.name}
+            className={cn(
+              "relative text-white border-white/10 rounded-3xl p-2 transition-all",
+              plan.popular
+                ? "bg-gradient-to-b from-violet-950/80 via-slate-900/90 to-slate-950 border-violet-500/50 shadow-2xl shadow-violet-500/20"
+                : "bg-slate-900/60 border-white/10"
+            )}
+          >
+            <CardHeader className="text-left">
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="text-2xl font-bold">{plan.name}</h3>
+                {plan.popular && (
+                  <span className="bg-violet-500/20 border border-violet-500/40 text-violet-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                    Popular
+                  </span>
+                )}
+              </div>
+              <div className="flex items-baseline gap-1 my-2">
+                <span className="text-4xl font-extrabold text-white">
+                  ${isYearly ? plan.yearlyPrice : plan.price}
+                </span>
+                <span className="text-gray-400 text-xs font-mono">
+                  /{isYearly ? "year" : "month"}
+                </span>
+              </div>
+              <p className="text-xs text-gray-300 min-h-[36px]">{plan.description}</p>
+            </CardHeader>
+
+            <CardContent className="space-y-4">
+              <button
+                className={cn(
+                  "w-full py-3 rounded-2xl text-xs font-bold transition-all shadow-lg",
+                  plan.popular
+                    ? "bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-violet-600/30"
+                    : "bg-white/10 hover:bg-white/20 text-white border border-white/10"
+                )}
+              >
+                {plan.buttonText}
+              </button>
+
+              <div className="space-y-2 pt-4 border-t border-white/10 text-xs">
+                <p className="font-semibold text-gray-300">{plan.includes[0]}</p>
+                <ul className="space-y-1.5">
+                  {plan.includes.slice(1).map((feature, fIdx) => (
+                    <li key={fIdx} className="flex items-center gap-2 text-gray-400">
+                      <span className="w-1.5 h-1.5 rounded-full bg-violet-400" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+export default PricingSection;

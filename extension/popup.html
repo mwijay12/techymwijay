@@ -5,28 +5,55 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mwijay Tech Vault & Voice</title>
   <style>
+    :root {
+      --lg-bg-color: rgba(255, 255, 255, 0.08);
+      --lg-highlight: rgba(255, 255, 255, 0.15);
+      --lg-text: #ffffff;
+      --lg-red: #fb4268;
+      --lg-violet: #818cf8;
+      --lg-indigo: #6366f1;
+    }
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      width: 360px;
-      min-height: 520px;
-      max-height: 580px;
-      background: #0d0f17;
+      width: 380px;
+      min-height: 550px;
+      max-height: 600px;
+      background: #0b0c15;
       color: #e2e8f0;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      font-size: 12px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 11px;
       overflow-x: hidden;
       display: flex;
       flex-direction: column;
+      position: relative;
+      border-radius: 2rem;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.15), inset 0 0 5px rgba(255, 255, 255, 0.08), 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Glass layer backgrounds */
+    .glass-backdrop {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top left, rgba(99, 102, 241, 0.15), transparent 60%),
+                  radial-gradient(circle at bottom right, rgba(236, 72, 153, 0.1), transparent 60%);
+      z-index: 0;
+      pointer-events: none;
     }
 
     .header {
-      background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(139,92,246,0.12));
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-      padding: 10px 14px;
+      position: relative;
+      z-index: 10;
+      background: rgba(255, 255, 255, 0.04);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 12px 14px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      backdrop-filter: blur(12px) saturate(120%);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
     }
 
     .logo {
@@ -36,101 +63,59 @@
     }
 
     .logo-icon {
-      width: 30px;
-      height: 30px;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      border-radius: 8px;
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, var(--lg-indigo), #ec4899);
+      border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 15px;
-      box-shadow: 0 2px 10px rgba(99,102,241,0.3);
+      font-size: 14px;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35), inset 1px 1px 0 rgba(255, 255, 255, 0.3);
     }
 
     .logo-text {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 800;
-      background: linear-gradient(135deg, #818cf8, #38bdf8);
+      background: linear-gradient(135deg, #a5b4fc, #38bdf8);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
+      letter-spacing: 0.5px;
     }
 
     .logo-sub {
-      font-size: 9px;
+      font-size: 8px;
       color: #94a3b8;
       margin-top: -1px;
     }
 
     .open-app-btn {
-      background: rgba(99,102,241,0.15);
-      border: 1px solid rgba(99,102,241,0.35);
-      color: #818cf8;
-      border-radius: 8px;
-      padding: 4px 9px;
-      font-size: 10px;
-      font-weight: 600;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #cbd5e1;
+      border-radius: 10px;
+      padding: 5px 9px;
+      font-size: 9px;
+      font-weight: 700;
       cursor: pointer;
-      transition: all 0.2s;
-      text-decoration: none;
+      transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: inset 1px 1px 0 rgba(255,255,255,0.1);
     }
 
     .open-app-btn:hover {
-      background: rgba(99,102,241,0.3);
+      background: rgba(99, 102, 241, 0.25);
+      border-color: rgba(99, 102, 241, 0.4);
       color: #fff;
-    }
-
-    .nav-tabs {
-      display: flex;
-      background: rgba(15, 23, 42, 0.9);
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-      padding: 4px;
-      gap: 4px;
-    }
-
-    .tab-btn {
-      flex: 1;
-      padding: 7px 4px;
-      font-size: 11px;
-      font-weight: 600;
-      color: #94a3b8;
-      background: transparent;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all 0.15s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 5px;
-    }
-
-    .tab-btn:hover {
-      color: #e2e8f0;
-      background: rgba(255,255,255,0.04);
-    }
-
-    .tab-btn.active {
-      background: rgba(99,102,241,0.18);
-      color: #a5b4fc;
-      border: 1px solid rgba(99,102,241,0.3);
-    }
-
-    .tab-content {
-      display: none;
-      padding: 12px 14px;
-      flex: 1;
-      overflow-y: auto;
-    }
-
-    .tab-content.active {
-      display: block;
+      transform: translateY(-1px);
     }
 
     .auth-bar {
-      padding: 6px 14px;
-      background: rgba(15, 23, 42, 0.5);
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-      font-size: 10px;
+      position: relative;
+      z-index: 10;
+      padding: 8px 14px;
+      background: rgba(9, 10, 16, 0.5);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 9px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -149,445 +134,451 @@
       border-radius: 50%;
     }
 
-    .auth-dot.online { background: #10b981; box-shadow: 0 0 6px rgba(16,185,129,0.5); }
+    .auth-dot.online { background: #10b981; box-shadow: 0 0 6px rgba(16,185,129,0.6); }
     .auth-dot.offline { background: #f59e0b; }
 
     .sync-badge {
-      font-size: 9px;
-      background: rgba(16,185,129,0.1);
-      color: #10b981;
-      border: 1px solid rgba(16,185,129,0.25);
-      padding: 2px 6px;
-      border-radius: 10px;
-      font-weight: 600;
+      font-size: 8px;
+      background: rgba(99, 102, 241, 0.1);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      padding: 1.5px 6px;
+      border-radius: 8px;
+      font-weight: 700;
     }
 
-    /* Vault Styling */
-    .vault-toolbar {
+    .auth-toggle-btn {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: #a5b4fc;
+      border-radius: 6px;
+      padding: 2.5px 7px;
+      font-size: 8px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .auth-toggle-btn:hover {
+      background: rgba(99,102,241,0.2);
+      color: #fff;
+    }
+
+    .nav-tabs {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      background: rgba(15, 23, 42, 0.4);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 5px;
+      gap: 5px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 8px 4px;
+      font-size: 10px;
+      font-weight: 700;
+      color: #94a3b8;
+      background: transparent;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .tab-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .tab-btn.active {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.2), 0 4px 12px rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .tab-content {
+      position: relative;
+      z-index: 10;
+      display: none;
+      padding: 14px;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .tab-content.active {
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      margin-bottom: 10px;
+      gap: 12px;
     }
 
-    .search-box {
+    /* Input & Textarea Elements (Sleek Specular Glow) */
+    .transcript-area, .tts-input, .form-input, .form-select {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 10px 12px;
+      font-size: 11px;
+      color: #f1f5f9;
+      resize: none;
+      outline: none;
+      font-family: inherit;
+      transition: all 0.25s ease;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .transcript-area:focus, .tts-input:focus, .form-input:focus, .form-select:focus {
+      border-color: rgba(99, 102, 241, 0.4);
+      background: rgba(255, 255, 255, 0.06);
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.2), 0 0 10px rgba(99, 102, 241, 0.15);
+    }
+
+    /* Category selectors */
+    .lang-selector, .filter-chips, .engine-selector {
+      display: flex;
+      gap: 5px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 3px;
+      border-radius: 12px;
+    }
+
+    .lang-btn, .chip, .engine-chip {
+      flex: 1;
+      padding: 6px 4px;
+      border-radius: 9px;
+      font-size: 9px;
+      font-weight: 700;
+      color: #94a3b8;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .lang-btn.active, .chip.active, .engine-chip.active {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.15);
+    }
+
+    /* Kinasa Sauti (Mic Container & Pulsing Visualizer) */
+    .mic-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 0;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 20px;
+      box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.05);
+    }
+
+    .mic-btn {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: none;
+      background: linear-gradient(135deg, var(--lg-indigo), #ec4899);
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4), inset 1px 1px 0 rgba(255, 255, 255, 0.35);
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       position: relative;
     }
 
-    .search-input {
-      width: 100%;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 8px;
-      padding: 7px 10px 7px 28px;
-      font-size: 11px;
-      color: #e2e8f0;
-      outline: none;
-      transition: border-color 0.15s;
+    .mic-btn:hover {
+      transform: scale(1.08);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5), inset 1px 1px 0 rgba(255, 255, 255, 0.45);
     }
 
-    .search-input:focus {
-      border-color: rgba(99,102,241,0.4);
+    /* Record Mode Spinning Vinyl Anim */
+    .mic-btn.recording {
+      animation: vinyl-spin 3s linear infinite;
+      box-shadow: 0 0 25px rgba(239, 68, 68, 0.6);
+      background: black;
     }
 
-    .search-icon {
-      position: absolute;
-      left: 9px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 11px;
-      color: #64748b;
+    @keyframes vinyl-spin {
+      from { transform: rotate(0deg) scale(1.03); }
+      to { transform: rotate(360deg) scale(1.03); }
     }
 
-    .category-filter {
-      display: flex;
-      gap: 4px;
-      overflow-x: auto;
-      padding-bottom: 2px;
-    }
-
-    .filter-chip {
-      padding: 3px 8px;
-      border-radius: 12px;
-      font-size: 10px;
-      font-weight: 600;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.06);
+    .mic-status {
+      font-size: 9px;
       color: #94a3b8;
-      cursor: pointer;
-      white-space: nowrap;
+      font-weight: 600;
+      letter-spacing: 0.3px;
     }
 
-    .filter-chip:hover { color: #e2e8f0; }
-
-    .filter-chip.active {
-      background: rgba(99,102,241,0.18);
-      color: #818cf8;
-      border-color: rgba(99,102,241,0.35);
-    }
-
-    .add-vault-header {
+    .action-row {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
+      gap: 6px;
     }
 
-    .add-btn {
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      border: none;
-      color: #fff;
-      border-radius: 6px;
-      padding: 5px 10px;
+    .action-btn {
+      flex: 1;
+      padding: 8px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.04);
+      color: #cbd5e1;
       font-size: 10px;
       font-weight: 700;
       cursor: pointer;
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 4px;
+      transition: all 0.2s;
     }
 
-    .add-btn:hover { opacity: 0.9; }
+    .action-btn:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      transform: translateY(-1px);
+    }
 
+    .action-btn.primary {
+      background: rgba(99, 102, 241, 0.2);
+      border-color: rgba(99, 102, 241, 0.4);
+      color: #a5b4fc;
+    }
+
+    .action-btn.primary:hover:not(:disabled) {
+      background: rgba(99, 102, 241, 0.35);
+    }
+
+    .action-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    /* Vault Lists & Card Items */
     .vault-list {
       display: flex;
       flex-direction: column;
       gap: 8px;
-      max-height: 330px;
+      max-height: 280px;
       overflow-y: auto;
-      padding-right: 2px;
     }
 
     .vault-card {
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.07);
-      border-radius: 10px;
-      padding: 9px 11px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 16px;
+      padding: 10px 12px;
       transition: all 0.2s;
+      box-shadow: inset 1px 1px 0 rgba(255,255,255,0.05);
     }
 
     .vault-card:hover {
-      border-color: rgba(99,102,241,0.25);
-      background: rgba(255,255,255,0.05);
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(255, 255, 255, 0.12);
+      transform: translateX(2px);
     }
 
-    .vault-card-header {
+    /* Vault Forms */
+    .vault-form-modal {
+      background: rgba(15, 17, 28, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 14px;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.5);
+    }
+
+    .form-group {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 4px;
-    }
-
-    .vault-title {
-      font-weight: 700;
-      font-size: 11px;
-      color: #f1f5f9;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .vault-type-badge {
-      font-size: 8px;
-      font-weight: 700;
-      text-transform: uppercase;
-      padding: 2px 5px;
-      border-radius: 4px;
-      letter-spacing: 0.05em;
-    }
-
-    .badge-password { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
-    .badge-api-key { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.25); }
-    .badge-snippet { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.25); }
-    .badge-credential { background: rgba(168,85,247,0.15); color: #c084fc; border: 1px solid rgba(168,85,247,0.25); }
-
-    .vault-value-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: rgba(0,0,0,0.3);
-      border-radius: 6px;
-      padding: 4px 8px;
-      margin-top: 4px;
-    }
-
-    .vault-masked-val {
-      font-family: monospace;
-      font-size: 11px;
-      color: #94a3b8;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      max-width: 220px;
-    }
-
-    .vault-card-actions {
-      display: flex;
+      flex-direction: column;
       gap: 4px;
     }
 
-    .card-icon-btn {
-      background: transparent;
-      border: none;
-      color: #94a3b8;
-      cursor: pointer;
-      padding: 3px;
-      border-radius: 4px;
-      font-size: 12px;
-      transition: all 0.15s;
-    }
-
-    .card-icon-btn:hover {
-      color: #fff;
-      background: rgba(255,255,255,0.1);
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 30px 10px;
-      color: #64748b;
-    }
-
-    .empty-state-icon {
-      font-size: 28px;
-      margin-bottom: 6px;
-    }
-
-    /* Modal Form */
-    .vault-form-modal {
-      display: none;
-      background: rgba(15, 23, 42, 0.98);
-      border: 1px solid rgba(99,102,241,0.3);
-      border-radius: 12px;
-      padding: 12px;
-      margin-bottom: 12px;
-
-    }
-
-    .vault-form-modal.active { display: block; }
-
-    .form-group {
-      margin-bottom: 8px;
-    }
-
     .form-label {
-      font-size: 9px;
+      font-size: 8px;
       font-weight: 700;
       color: #94a3b8;
       text-transform: uppercase;
-      margin-bottom: 3px;
-      display: block;
-    }
-
-    .form-input, .form-select, .form-textarea {
-      width: 100%;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 6px;
-      padding: 6px 8px;
-      font-size: 11px;
-      color: #e2e8f0;
-      outline: none;
-      font-family: inherit;
-    }
-
-    .form-input:focus, .form-select:focus, .form-textarea:focus {
-      border-color: #6366f1;
+      letter-spacing: 0.5px;
     }
 
     .form-actions {
       display: flex;
       gap: 6px;
-      margin-top: 10px;
+      margin-top: 4px;
     }
 
-    /* Voice & Speech Styles */
-    .section-title {
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #94a3b8;
-      margin-bottom: 8px;
-    }
-
-    .lang-selector {
-      display: flex;
-      gap: 6px;
-      margin-bottom: 10px;
-    }
-
-    .lang-btn {
-      flex: 1;
-      padding: 5px 6px;
-      border-radius: 8px;
-      border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(255,255,255,0.03);
-      color: #94a3b8;
-      font-size: 10px;
-      font-weight: 600;
-      cursor: pointer;
-      text-align: center;
-    }
-
-    .lang-btn.active {
-      background: rgba(99,102,241,0.15);
-      border-color: rgba(99,102,241,0.4);
-      color: #6366f1;
-    }
-
-    .mic-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 0;
-    }
-
-    .mic-btn {
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      box-shadow: 0 4px 20px rgba(99,102,241,0.4);
-      transition: all 0.2s;
-    }
-
-    .mic-btn.recording {
-      background: linear-gradient(135deg, #ef4444, #dc2626);
-      box-shadow: 0 4px 24px rgba(239,68,68,0.5);
-      animation: popup-pulse 1.2s ease-in-out infinite;
-    }
-
-    @keyframes popup-pulse {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
-      50% { box-shadow: 0 0 0 10px rgba(239,68,68,0); }
-    }
-
-    .mic-status { font-size: 10px; color: #94a3b8; text-align: center; }
-
-    .transcript-area, .tts-input {
-      width: 100%;
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 8px;
-      padding: 8px 10px;
-      font-size: 11px;
-      color: #e2e8f0;
-      resize: none;
-      outline: none;
-      font-family: inherit;
-    }
-
-    .action-row {
-      display: flex;
-      gap: 5px;
-      margin-top: 8px;
-    }
-
-    .action-btn {
-      flex: 1;
-      padding: 6px 8px;
-      border-radius: 8px;
-      border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(255,255,255,0.04);
-      color: #94a3b8;
-      font-size: 10px;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 3px;
-    }
-
-    .action-btn.primary {
-      background: rgba(99,102,241,0.18);
-      border-color: rgba(99,102,241,0.35);
-      color: #818cf8;
-    }
-
-    .action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
+    /* Footer styling */
     .footer {
-      padding: 6px 14px;
+      position: relative;
+      z-index: 10;
+      padding: 10px 14px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      border-top: 1px solid rgba(255,255,255,0.05);
-      background: #090a10;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      background: rgba(9, 10, 16, 0.6);
       margin-top: auto;
     }
 
-    .footer-text { font-size: 9px; color: #475569; }
-
-    .kbd {
-      display: inline-flex;
-      align-items: center;
-      padding: 1px 4px;
-      border-radius: 3px;
-      background: rgba(255,255,255,0.07);
-      border: 1px solid rgba(255,255,255,0.1);
-      font-size: 8px;
-      font-family: monospace;
-      color: #94a3b8;
-    }
+    .footer-text { font-size: 8.5px; color: #64748b; font-weight: 600; }
 
     .toast {
       position: fixed;
-      bottom: 12px;
+      bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(16,185,129,0.9);
-      color: #fff;
+      background: rgba(16, 185, 129, 0.95);
+      color: white;
+      font-weight: 800;
+      font-size: 9px;
+      padding: 6px 14px;
       border-radius: 20px;
-      padding: 5px 14px;
-      font-size: 10px;
-      font-weight: 700;
+      z-index: 1000;
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
       display: none;
-      z-index: 100;
-      box-shadow: 0 4px 15px rgba(16,185,129,0.4);
     }
 
     .toast.show { display: block; }
+
+    /* ========================================== */
+    /*   DIFFERENT DESIGN MINI MODE (Island pill)  */
+    /* ========================================== */
+    body.ext-mini-mode {
+      min-height: 135px !important;
+      max-height: 135px !important;
+      background: rgba(11, 12, 21, 0.94) !important;
+      border-radius: 2rem !important;
+      border: 1px solid rgba(99, 102, 241, 0.4) !important;
+      backdrop-filter: blur(24px) saturate(140%) !important;
+      padding: 8px !important;
+      justify-content: center;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), inset 1px 1px 0 rgba(255,255,255,0.2);
+    }
+
+    body.ext-mini-mode .header {
+      background: transparent !important;
+      border-bottom: none !important;
+      padding: 2px 6px !important;
+      backdrop-filter: none !important;
+      box-shadow: none !important;
+    }
+
+    body.ext-mini-mode .header .logo-sub,
+    body.ext-mini-mode .auth-bar,
+    body.ext-mini-mode .nav-tabs,
+    body.ext-mini-mode .footer {
+      display: none !important;
+    }
+
+    body.ext-mini-mode .tab-content {
+      padding: 0 4px !important;
+    }
+
+    body.ext-mini-mode .mic-container {
+      display: none !important;
+    }
+
+    body.ext-mini-mode .transcript-area {
+      height: 38px !important;
+      border-radius: 12px !important;
+      padding: 6px 10px !important;
+      font-size: 10.5px !important;
+    }
+
+    body.ext-mini-mode .action-row {
+      margin-top: 6px !important;
+      gap: 4px !important;
+    }
+
+    body.ext-mini-mode .action-btn {
+      padding: 6px 8px !important;
+      font-size: 9px !important;
+      border-radius: 10px !important;
+    }
+
+    body.ext-mini-mode #toggleTtsCollapseBtn {
+      display: none !important;
+    }
   </style>
 </head>
 <body>
 
+  <!-- Liquid glass backdrop lighting effects -->
+  <div class="glass-backdrop"></div>
+
+  <!-- Header -->
   <div class="header">
     <div class="logo">
-      <div class="logo-icon">🔐</div>
+      <div class="logo-icon">🎙️</div>
       <div>
-        <div class="logo-text">Mwijay Tech Vault</div>
-        <div class="logo-sub">Passwords · API Keys · Voice Studio</div>
+        <div class="logo-text">MVS</div>
+        <div class="logo-sub">Voice Studio & Vault</div>
       </div>
     </div>
-    <button class="open-app-btn" id="openAppBtn">
-      Web App ↗
-    </button>
+    <div style="display: flex; gap: 4px;">
+      <button class="open-app-btn" id="toggleExtMiniBtn" title="Toggle Compact MVS Mode">
+        MVS 🗗
+      </button>
+      <button class="open-app-btn" id="openSidePanelBtn" title="Open persistent Chrome Sidebar">
+        Sidebar 📌
+      </button>
+      <button class="open-app-btn" id="openAppBtn">
+        Web App ↗
+      </button>
+    </div>
   </div>
 
+  <!-- Auth Bar -->
   <div class="auth-bar">
     <div class="auth-info">
       <div class="auth-dot online" id="authDot"></div>
-      <span id="authText">Davie Mwijay Vault</span>
+      <span id="authText">Davie Mwijay</span>
     </div>
-    <span class="sync-badge">☁️ Cloud Sync</span>
+    <div style="display: flex; gap: 4px; align-items: center;">
+      <span class="sync-badge" id="syncBadge">☁️ Synced</span>
+      <button class="auth-toggle-btn" id="toggleAuthModalBtn">🔑 Login</button>
+    </div>
   </div>
 
-  <!-- Tab Buttons -->
+  <!-- Auth Modal Form -->
+  <div class="vault-form-modal" id="authModal">
+    <div class="form-group">
+      <label class="form-label">Email Address</label>
+      <input type="email" id="authEmail" class="form-input" placeholder="user@mwijaytech.com" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input type="password" id="authPassword" class="form-input" placeholder="Enter account password..." />
+    </div>
+    <div class="form-actions">
+      <button class="action-btn" id="closeAuthBtn">Close</button>
+      <button class="action-btn primary" id="doLoginBtn">Sign In ✓</button>
+    </div>
+  </div>
+
+  <!-- Tab Navigation buttons -->
   <div class="nav-tabs">
-    <button class="tab-btn active" data-tab="vaultTab">
-      🔐 Vault
+    <button class="tab-btn active" data-tab="voiceTab">
+      🎙️ Voice Studio
     </button>
-    <button class="tab-btn" data-tab="voiceTab">
-      🎙️ Voice
+    <button class="tab-btn" data-tab="vaultTab">
+      🔐 Vault
     </button>
     <button class="tab-btn" data-tab="clipsTab">
       📋 Web Clips
@@ -595,115 +586,159 @@
   </div>
 
   <!-- TAB 1: VAULT & PASSWORDS -->
-  <div class="tab-content active" id="vaultTab">
+  <div class="tab-content" id="vaultTab">
     <div class="add-vault-header">
-      <span class="section-title" style="margin:0">Saved Passwords & Keys</span>
+      <span class="logo-text" style="font-size: 11px;">Saved Secrets</span>
       <button class="add-btn" id="toggleAddFormBtn">+ Add Secret</button>
     </div>
 
-    <!-- Add Item Form Modal -->
+    <!-- Vault Add Form -->
     <div class="vault-form-modal" id="vaultFormModal">
-      <div class="form-group">
-        <label class="form-label">Service / Name</label>
-        <input type="text" id="formTitle" class="form-input" placeholder="e.g. OpenAI API Key, GitHub Password" />
-      </div>
       <div class="form-group">
         <label class="form-label">Category</label>
         <select id="formCategory" class="form-select">
-          <option value="api-key">⚡ API Key</option>
-          <option value="password">🔑 Password</option>
-          <option value="credential">🔒 Secret / Token</option>
-          <option value="snippet">📄 Web Snippet</option>
+          <option value="password">🔑 Login Password</option>
+          <option value="api-key">⚡ API Key / Secret Token</option>
+          <option value="card">💳 Card / Payment</option>
+          <option value="note">📝 Encrypted Note</option>
         </select>
       </div>
+
+      <div class="form-group">
+        <label class="form-label">Title / Site Name</label>
+        <input type="text" id="formTitle" class="form-input" placeholder="e.g. OpenAI API Key, GitHub..." />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Username / Key Identifier</label>
+        <input type="text" id="formNotes" class="form-input" placeholder="e.g. user@email.com or sk-..." />
+      </div>
+
       <div class="form-group">
         <label class="form-label">Secret Value / Password</label>
-        <input type="password" id="formValue" class="form-input" placeholder="Paste key, password, or token..." />
+        <input type="password" id="formValue" class="form-input" placeholder="Enter password or secret..." />
       </div>
-      <div class="form-group">
-        <label class="form-label">Username / Notes (Optional)</label>
-        <input type="text" id="formNotes" class="form-input" placeholder="e.g. user@email.com or key notes" />
-      </div>
+
       <div class="form-actions">
         <button class="action-btn" id="cancelFormBtn">Cancel</button>
         <button class="action-btn primary" id="saveFormBtn">Save Secret ✓</button>
       </div>
     </div>
 
-    <!-- Search & Filters -->
-    <div class="vault-toolbar">
-      <div class="search-box">
-        <span class="search-icon">🔍</span>
-        <input type="text" id="vaultSearch" class="search-input" placeholder="Search passwords, API keys..." />
-      </div>
-      <div class="category-filter">
-        <span class="filter-chip active" data-cat="all">All</span>
-        <span class="filter-chip" data-cat="api-key">⚡ API Keys</span>
-        <span class="filter-chip" data-cat="password">🔑 Passwords</span>
-        <span class="filter-chip" data-cat="credential">🔒 Secrets</span>
-        <span class="filter-chip" data-cat="snippet">📄 Snippets</span>
-      </div>
+    <div style="position: relative; margin-bottom: 8px;">
+      <input type="text" id="vaultSearch" class="form-input" placeholder="Search keys, passwords..." style="padding-left: 28px; border-radius: 12px;" />
+      <span style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 10px;">🔍</span>
     </div>
 
-    <!-- Vault Card List Container -->
+    <!-- Category Filter Chips -->
+    <div class="filter-chips">
+      <button class="chip active" data-cat="all">All</button>
+      <button class="chip" data-cat="password">Passwords</button>
+      <button class="chip" data-cat="api-key">API Keys</button>
+      <button class="chip" data-cat="note">Notes</button>
+    </div>
+
+    <!-- Vault Item List Container -->
     <div class="vault-list" id="vaultList">
-      <div class="empty-state">
-        <div class="empty-state-icon">🔐</div>
-        <p>No passwords or API keys stored yet.</p>
-        <p style="font-size: 9px; margin-top: 4px;">Click <b>+ Add Secret</b> or right-click text on any web page!</p>
+      <div class="empty-state" style="text-align: center; padding: 20px 0; opacity: 0.6;">
+        <p>No secrets stored yet.</p>
       </div>
     </div>
   </div>
 
-  <!-- TAB 2: VOICE STUDIO -->
-  <div class="tab-content" id="voiceTab">
-    <div class="section-title">🎙️ Swahili & English Dictation</div>
+  <!-- TAB 2: VOICE STUDIO & TTS (Default Open) -->
+  <div class="tab-content active" id="voiceTab">
+    <!-- Dictation Section -->
     <div class="lang-selector">
       <button class="lang-btn" data-lang="sw-KE">🇹🇿 Swahili</button>
       <button class="lang-btn active" data-lang="auto">🌍 Auto</button>
       <button class="lang-btn" data-lang="en-US">🇺🇸 English</button>
     </div>
 
+    <!-- Kinasa Sauti -->
     <div class="mic-container">
-      <button class="mic-btn" id="micBtn">🎤</button>
-      <p class="mic-status" id="micStatus">Click mic or press <span class="kbd">Alt+M</span></p>
+      <button class="mic-btn" id="micBtn" title="Click to speak">🎤</button>
+      <p class="mic-status" id="micStatus">Ready to dictate</p>
     </div>
 
-    <textarea class="transcript-area" id="transcriptArea" placeholder="Transcript appears here... Andika itaonekana hapa" rows="3"></textarea>
+    <!-- Inline Editable Text area -->
+    <textarea class="transcript-area" id="transcriptArea" placeholder="Transcript appears here..." rows="3"></textarea>
 
+    <!-- STT Action Bar -->
     <div class="action-row">
       <button class="action-btn" id="insertBtn" disabled>📥 Insert</button>
       <button class="action-btn" id="copyBtn" disabled>📋 Copy</button>
-      <button class="action-btn primary" id="saveVaultBtn" disabled>🔐 Save to Vault</button>
+      <button class="action-btn primary" id="saveVaultBtn" disabled>🔐 Save Vault</button>
+      <button class="action-btn" id="toggleTtsCollapseBtn" style="flex: 0 1 auto; padding: 6px 10px;">🔊 TTS</button>
     </div>
 
-    <div class="section-title" style="margin-top: 14px">🔊 Read Aloud — Soma Kwa Sauti</div>
-    <textarea class="tts-input" id="ttsInput" placeholder="Paste text or select on page..." rows="2"></textarea>
-    <div class="action-row">
-      <button class="action-btn" id="readSelectedBtn">📖 Read selected</button>
-      <button class="action-btn primary" id="speakBtn">▶ Speak</button>
-      <button class="action-btn" id="stopSpeakBtn">⏹ Stop</button>
+    <!-- Collapsible Text-to-Speech Settings -->
+    <div id="ttsCollapsibleSection" style="display: none; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 10px; display: flex; flex-direction: column; gap: 8px;">
+      
+      <div class="engine-selector">
+        <button class="engine-chip active" data-engine="elevenlabs">ElevenLabs</button>
+        <button class="engine-chip" data-engine="puter">Puter.js</button>
+        <button class="engine-chip" data-engine="browser">Browser Native</button>
+      </div>
+
+      <div class="form-group">
+        <select id="ttsVoiceSelect" class="form-select" style="padding: 6px 10px;">
+          <option value="21m00Tcm4TlvDq8ikWAM">Rachel (ElevenLabs)</option>
+          <option value="AZnzlk1XvdvUeBnXmlld">Domi (ElevenLabs)</option>
+          <option value="pNInz6obpgDQGcFmaJgB">Adam (ElevenLabs)</option>
+          <option value="puter-sw">Puter.js Swahili Engine</option>
+        </select>
+      </div>
+
+      <textarea class="tts-input" id="ttsInput" placeholder="Enter text to speak..." rows="2"></textarea>
+
+      <!-- Speed Control -->
+      <div class="speed-slider-row">
+        <span class="speed-label">Speed: <span id="speedVal" style="color:var(--lg-violet);">1.0x</span></span>
+        <input type="range" id="ttsSpeedRange" class="speed-range" min="0.5" max="2.0" step="0.1" value="1.0" />
+      </div>
+
+      <!-- TTS Speak Controls -->
+      <div class="action-row">
+        <button class="action-btn" id="readSelectedBtn">📖 Read Selection</button>
+        <button class="action-btn primary" id="speakBtn">▶ Speak</button>
+        <button class="action-btn" id="stopSpeakBtn">⏹ Stop</button>
+        <button class="action-btn" id="downloadTtsBtn" title="Download MP3">💾 MP3</button>
+      </div>
     </div>
   </div>
 
   <!-- TAB 3: WEB CLIPPINGS -->
   <div class="tab-content" id="clipsTab">
-    <div class="section-title">📋 Web Lookup & Copied Clippings</div>
+    <div class="add-vault-header">
+      <span class="logo-text" style="font-size: 11px;">Saved Clips</span>
+    </div>
     <div class="vault-list" id="clipsList">
-      <div class="empty-state">
-        <div class="empty-state-icon">📋</div>
-        <p>No web snippets saved yet.</p>
-        <p style="font-size: 9px; margin-top: 4px;">Highlight text on any site and right-click "Save Web Snippet"!</p>
+      <div class="empty-state" style="text-align: center; padding: 20px 0; opacity: 0.6;">
+        <p>No web clippings stored yet.</p>
       </div>
     </div>
   </div>
 
+  <!-- Footer -->
   <div class="footer">
-    <span class="footer-text">Mwijay Tech Vault v1.1.0</span>
-    <span class="footer-text">Dictate: <span class="kbd">Alt+M</span></span>
+    <span class="footer-text">MVS OS v1.2.0</span>
+    <span class="footer-text">Hotkey: <span class="kbd">Alt+M</span></span>
   </div>
 
-  <div class="toast" id="toast">✅ Saved!</div>
+  <!-- Micro-Toast Alert -->
+  <div class="toast" id="toast">✅ Action Completed</div>
+
+  <!-- SVGLens Blur Filter Elements -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+    <filter id="lensFilter" x="0%" y="0%" width="100%" height="100%" filterUnits="objectBoundingBox">
+      <feComponentTransfer in="SourceAlpha" result="alpha">
+        <feFuncA type="identity" />
+      </feComponentTransfer>
+      <feGaussianBlur in="alpha" stdDeviation="50" result="blur" />
+      <feDisplacementMap in="SourceGraphic" in2="blur" scale="50" xChannelSelector="A" yChannelSelector="A" />
+    </filter>
+  </svg>
 
   <script src="popup.js"></script>
 </body>

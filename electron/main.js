@@ -17,6 +17,7 @@ const {
   net,
   nativeTheme,
   Menu,
+  protocol,
 } = require('electron')
 const path = require('path')
 const { loadWindowState, saveWindowState } = require('./window-state')
@@ -44,10 +45,25 @@ const {
   isWidgetOpen,
 } = require('./widget-mode')
 
+const { spawn } = require('child_process')
+
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: 'app',
+    privileges: {
+      standard: true,
+      secure: true,
+      allowServiceWorkers: true,
+      supportFetchAPI: true,
+      corsEnabled: true,
+    },
+  },
+])
+
 const isDev = process.env.NODE_ENV === 'development'
 const APP_URL = isDev
   ? 'http://localhost:3000'
-  : `file://${path.join(__dirname, '../out/index.html')}`
+  : 'app://./index.html'
 
 let mainWindow = null
 let trayController = null
@@ -349,6 +365,36 @@ function setupWindowsJumpList() {
 }
 
 function setupProtocol() {
+  if (!isDev) {
+    const fs = require('fs')
+    protocol.handle('app', (request) => {
+      try {
+        const parsed = new URL(request.url)
+        let pathname = decodeURIComponent(parsed.pathname)
+
+        if (pathname === '/' || !pathname) {
+          pathname = '/index.html'
+        }
+
+        let filePath = path.join(__dirname, '../out', pathname)
+
+        if (!fs.existsSync(filePath)) {
+          if (fs.existsSync(filePath + '.html')) {
+            filePath = filePath + '.html'
+          } else if (fs.existsSync(path.join(filePath, 'index.html'))) {
+            filePath = path.join(filePath, 'index.html')
+          }
+        }
+
+        const fileUrl = `file:///${filePath.replace(/\\/g, '/')}`
+        return net.fetch(fileUrl)
+      } catch (err) {
+        console.error('[Electron Protocol] Error handling app request:', err)
+        return new Response('Not Found', { status: 404 })
+      }
+    })
+  }
+
   if (!app.isDefaultProtocolClient('mwijaytech')) {
     app.setAsDefaultProtocolClient('mwijaytech')
   }

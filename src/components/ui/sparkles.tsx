@@ -1,9 +1,12 @@
 "use client";
 
 import { useEffect, useId, useState } from "react";
-import Particles from "@tsparticles/react";
-import { loadSlim } from "@tsparticles/slim";
+import dynamic from "next/dynamic";
 import { cn } from "@/lib/utils";
+
+const Particles = dynamic(() => import("@tsparticles/react"), {
+  ssr: false,
+});
 
 interface SparklesProps {
   className?: string;
@@ -40,11 +43,20 @@ export function Sparkles({
   const id = useId();
 
   useEffect(() => {
+    let mounted = true;
     const init = async () => {
-      await (loadSlim as any)();
-      setIsReady(true);
+      try {
+        const { loadSlim } = await import("@tsparticles/slim");
+        await loadSlim as any;
+        if (mounted) setIsReady(true);
+      } catch (err) {
+        console.warn("Particles load failed:", err);
+      }
     };
     init();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const defaultOptions = {

@@ -63,6 +63,7 @@ export async function verifyAndUnlock(
   userId: string,
   password: string
 ): Promise<boolean> {
+  if (typeof window === 'undefined') return false
   const stored = localStorage.getItem(getVerifyKey(userId))
   if (!stored) return false
 
@@ -83,16 +84,19 @@ export async function verifyAndUnlock(
 }
 
 export function unlockVault(userId: string): void {
+  if (typeof window === 'undefined') return
   sessionStorage.setItem(getSessionKey(userId), 'unlocked')
   updateLastActive(userId)
 }
 
 export function lockVault(userId: string): void {
+  if (typeof window === 'undefined') return
   sessionStorage.removeItem(getSessionKey(userId))
   sessionStorage.removeItem(getLastActiveKey(userId))
 }
 
 export function updateLastActive(userId: string): void {
+  if (typeof window === 'undefined') return
   sessionStorage.setItem(getLastActiveKey(userId), Date.now().toString())
 }
 
@@ -100,7 +104,7 @@ export function shouldAutoLock(
   userId: string,
   autoLockMinutes: number
 ): boolean {
-  if (autoLockMinutes === 0) return false
+  if (typeof window === 'undefined' || autoLockMinutes === 0) return false
 
   const lastActive = sessionStorage.getItem(getLastActiveKey(userId))
   if (!lastActive) return false
@@ -115,6 +119,7 @@ export async function changeMasterPassword(
   userId: string,
   newPassword: string
 ): Promise<void> {
+  if (typeof window === 'undefined') return
   const { hash, salt } = await createVerificationHash(newPassword, userId)
 
   const verifyData: VaultVerifyData = {
@@ -129,6 +134,8 @@ export async function changeMasterPassword(
 }
 
 export function removeVaultPassword(userId: string): void {
+  if (typeof window === 'undefined') return
   localStorage.removeItem(getVerifyKey(userId))
   lockVault(userId)
 }
+

@@ -69,7 +69,7 @@ async function callOpenRouter(
     baseURL: 'https://openrouter.ai/api/v1',
     apiKey: key,
     defaultHeaders: {
-      'HTTP-Referer': 'https://mwijaytech.vercel.app',
+      'HTTP-Referer': 'https://techymwijay.vercel.app',
       'X-Title': 'Mwijay Tech',
     },
   })

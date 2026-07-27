@@ -33,6 +33,13 @@ release/
 .env.test.local
 .env.production.local
 
+# Electron build outputs
+build-dist/
+dist-electron/
+dist/
+extension.crx
+extension.pem
+
 # TypeScript
 *.tsbuildinfo
 

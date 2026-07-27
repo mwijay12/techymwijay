@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { ElectronDesktopShell } from '@/components/layout/ElectronDesktopShell'
 import { ElectronTitleBar } from '@/components/layout/ElectronTitleBar'
 import { OfflineBanner } from '@/components/layout/OfflineBanner'
 import { Navigation } from '@/components/layout/Navigation'
@@ -40,6 +41,31 @@ export function AppShell({
     }
   }, [])
 
+  // ── Electron: render the premium desktop shell ──────────────
+  if (isElectron) {
+    return (
+      <>
+        {/* Clipboard auto-save watcher */}
+        <ClipboardWatcher />
+
+        {/* Keyboard shortcuts reference modal */}
+        <ShortcutsHelp
+          isOpen={showShortcutsHelp}
+          onClose={() => setShowShortcutsHelp(false)}
+        />
+
+        {/* Global AI Chat Component */}
+        <ChatComponent />
+
+        {/* Premium desktop layout */}
+        <ElectronDesktopShell>
+          {children}
+        </ElectronDesktopShell>
+      </>
+    )
+  }
+
+  // ── Web / PWA: keep the original layout ────────────────────
   return (
     <div className={cn(
       'min-h-screen bg-brand-dark flex flex-col text-brand-text',
@@ -76,7 +102,7 @@ export function AppShell({
       <main
         className={cn(
           'flex-1 flex flex-col',
-          isElectron ? 'pt-24' : 'pt-16',
+          'pt-16',
           fullHeight && 'min-h-0'
         )}
       >

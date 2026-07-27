@@ -419,37 +419,62 @@
   transition: opacity 0.3s ease;
 }
 
-/* Electron-specific styles */
-/* When running in Electron, add padding-top to account for the custom title bar */
-.electron-content-wrapper {
-  padding-top: 0;
+/* ─── Electron Desktop Shell ──────────────────────────────── */
+.electron-shell {
+  font-feature-settings: 'ss01', 'ss02', 'cv01';
 }
 
-/* This class is added via JS when Electron is detected */
+/* Smooth page transitions inside desktop shell */
+.electron-shell main > div {
+  will-change: opacity, transform;
+}
+
+/* Frosted sidebar scrollbar — hidden but functional */
+.scrollbar-none {
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* Sidebar hover glow */
+.electron-shell [data-sidebar-active] {
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08),
+              0 0 20px rgba(124, 58, 237, 0.08);
+}
+
+/* Window drag region cursor */
+[style*="-webkit-app-region: drag"] {
+  cursor: default;
+  user-select: none;
+}
+
+/* Premium ambient blur for desktop panels */
+.glass-desktop {
+  background: rgba(15, 15, 28, 0.75);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Sidebar active gradient bar */
+.sidebar-active-bar {
+  background: linear-gradient(to bottom, #7c3aed, #3b82f6);
+}
+
+/* Legacy electron-mode class kept for backward compatibility */
 body.electron-mode .electron-content-wrapper {
   padding-top: 40px;
 }
 
-/* Adjust Navigation for Electron mode */
-body.electron-mode nav,
-body.electron-mode [class*="fixed top-0"] {
-  top: 40px !important;
-}
-
-/* Adjust scroll progress bar for Electron */
-body.electron-mode .scroll-progress {
-  top: 40px !important;
-}
-
-/* Ensure Electron title bar stays on top */
 .electron-titlebar {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  height: 40px;
+  height: 36px;
   z-index: 99999;
-  background: rgba(0, 0, 0, 0.95);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(8, 8, 16, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }

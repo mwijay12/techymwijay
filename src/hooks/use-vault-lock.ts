@@ -68,16 +68,21 @@ export function useVaultLock(): UseVaultLockReturn {
     }, 30_000)
 
     const handleActivity = () => updateLastActive(targetUid)
-    window.addEventListener('click', handleActivity, { passive: true })
-    window.addEventListener('keydown', handleActivity, { passive: true })
+    if (typeof window !== 'undefined') {
+      window.addEventListener('click', handleActivity, { passive: true })
+      window.addEventListener('keydown', handleActivity, { passive: true })
+    }
 
     return () => {
       if (autoLockTimerRef.current) {
         clearInterval(autoLockTimerRef.current)
       }
-      window.removeEventListener('click', handleActivity)
-      window.removeEventListener('keydown', handleActivity)
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('click', handleActivity)
+        window.removeEventListener('keydown', handleActivity)
+      }
     }
+
   }, [user?.uid, lockStatus, settings.vault?.autoLockMinutes])
 
   const unlock = useCallback(

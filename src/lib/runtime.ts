@@ -14,6 +14,7 @@ export const isServer = !isBrowser
 /** True when running in a development environment */
 export const isDevelopment =
   isBrowser &&
+  typeof window !== 'undefined' &&
   (window.location.hostname === 'localhost' ||
     window.location.hostname === '127.0.0.1' ||
     window.location.hostname.includes('dev') ||

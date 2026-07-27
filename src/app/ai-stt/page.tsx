@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Mic, Sparkles, AlertCircle } from 'lucide-react'
+import { Mic, Sparkles, AlertCircle, Minimize2, Maximize2 } from 'lucide-react'
 import AppShell from '@/components/layout/AppShell'
 import PageWrapper from '@/components/layout/PageWrapper'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
@@ -11,11 +11,15 @@ import { RecordingControls } from '@/components/stt/RecordingControls'
 import { TranscriptEditor } from '@/components/stt/TranscriptEditor'
 import { VoiceCommandFeedback } from '@/components/stt/VoiceCommandFeedback'
 import { TranscriptHistory } from '@/components/stt/TranscriptHistory'
+import { MiniVoiceStudioWidget } from '@/components/stt/MiniVoiceStudioWidget'
 import { useSpeechRecognition } from '@/hooks/use-speech-recognition'
+import { useTTS } from '@/hooks/use-tts'
 import { useVault } from '@/hooks/use-vault'
 import { useTodos } from '@/hooks/use-todos'
+import { cn } from '@/lib/utils'
 
 export default function STTPage() {
+  const [isMiniMode, setIsMiniMode] = useState(false)
   const {
     isListening,
     isPaused,
@@ -39,9 +43,15 @@ export default function STTPage() {
     clearCommand,
   } = useSpeechRecognition()
 
+  const { speak } = useTTS()
   const { addItem: addVaultItem } = useVault()
   const { addTodo } = useTodos()
   const [toastMessage, setToastMessage] = useState<string | null>(null)
+  const [editableText, setEditableText] = useState(fullTranscript)
+
+  useEffect(() => {
+    setEditableText(fullTranscript)
+  }, [fullTranscript])
 
   const handleSaveToVault = async (text: string) => {
     if (!text.trim()) return
@@ -89,17 +99,42 @@ export default function STTPage() {
 
           <div className="relative z-10 space-y-6 py-4">
             {/* Header */}
-            <div className="pb-6 border-b border-white/10">
-              <div className="inline-flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 rounded-full px-3.5 py-1 text-xs text-indigo-300 mb-3">
-                <Mic className="w-3.5 h-3.5" />
-                <span>AI Voice Studio — Speech to Text</span>
+            <div className="pb-6 border-b border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <div className="inline-flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 rounded-full px-3.5 py-1 text-xs text-indigo-300 mb-3">
+                  <Mic className="w-3.5 h-3.5" />
+                  <span>AI Voice Studio — Speech to Text</span>
+                </div>
+                <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
+                  Swahili-English STT Studio 🇹🇿
+                </h1>
+                <p className="text-gray-400 text-sm mt-1 max-w-2xl">
+                  Real-time voice dictation with Groq Whisper-large-v3, code-switching support, voice commands & vault sync.
+                </p>
               </div>
-              <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
-                Swahili-English STT Studio 🇹🇿
-              </h1>
-              <p className="text-gray-400 text-sm mt-1 max-w-2xl">
-                Real-time voice dictation with Groq Whisper-large-v3, code-switching support, voice commands & vault sync.
-              </p>
+
+              {/* Mini Mode Toggle Button */}
+              <button
+                onClick={() => setIsMiniMode(!isMiniMode)}
+                className={cn(
+                  'px-4 py-2.5 rounded-2xl text-xs font-semibold border transition-all flex items-center gap-2 shrink-0',
+                  isMiniMode
+                    ? 'bg-violet-600 text-white border-violet-500 shadow-lg shadow-violet-500/20'
+                    : 'bg-white/5 hover:bg-white/10 text-gray-300 border-white/10'
+                )}
+              >
+                {isMiniMode ? (
+                  <>
+                    <Maximize2 className="w-4 h-4" />
+                    <span>Expand Studio</span>
+                  </>
+                ) : (
+                  <>
+                    <Minimize2 className="w-4 h-4 text-cyan-400" />
+                    <span>Mini Floating Mode</span>
+                  </>
+                )}
+              </button>
             </div>
 
             {/* Error banner */}
@@ -117,49 +152,72 @@ export default function STTPage() {
               </div>
             )}
 
-            {/* Visualizer Canvas */}
-            <AudioVisualizer
-              analyserNode={analyserNode}
-              isActive={isListening}
-              isPaused={isPaused}
-            />
+            {isMiniMode ? (
+              <MiniVoiceStudioWidget
+                isListening={isListening}
+                isPaused={isPaused}
+                isProcessing={isProcessing}
+                language={language}
+                onLanguageChange={setLanguage}
+                transcript={editableText}
+                interimTranscript={interimTranscript}
+                onTranscriptChange={setEditableText}
+                onStart={startListening}
+                onStop={stopListening}
+                onPause={pauseListening}
+                onResume={resumeListening}
+                onSaveToVault={handleSaveToVault}
+                onSaveTask={handleSaveTask}
+                onSpeak={speak}
+                onExpand={() => setIsMiniMode(false)}
+              />
+            ) : (
+              <>
+                {/* Visualizer Canvas */}
+                <AudioVisualizer
+                  analyserNode={analyserNode}
+                  isActive={isListening}
+                  isPaused={isPaused}
+                />
 
-            {/* Controls */}
-            <RecordingControls
-              isListening={isListening}
-              isPaused={isPaused}
-              isProcessing={isProcessing}
-              activeEngine={activeEngine}
-              language={language}
-              onLanguageChange={setLanguage}
-              onStart={startListening}
-              onStop={stopListening}
-              onPause={pauseListening}
-              onResume={resumeListening}
-            />
+                {/* Controls */}
+                <RecordingControls
+                  isListening={isListening}
+                  isPaused={isPaused}
+                  isProcessing={isProcessing}
+                  activeEngine={activeEngine}
+                  language={language}
+                  onLanguageChange={setLanguage}
+                  onStart={startListening}
+                  onStop={stopListening}
+                  onPause={pauseListening}
+                  onResume={resumeListening}
+                />
 
-            {/* Transcript Display & Editor */}
-            <TranscriptEditor
-              transcript={fullTranscript}
-              interimTranscript={interimTranscript}
-              detectedLanguage={detectedLanguage}
-              isListening={isListening}
-              onClear={clearTranscript}
-              onSaveToVault={handleSaveToVault}
-              onSaveTask={handleSaveTask}
-            />
+                {/* Transcript Display & Editor */}
+                <TranscriptEditor
+                  transcript={editableText || fullTranscript}
+                  interimTranscript={interimTranscript}
+                  detectedLanguage={detectedLanguage}
+                  isListening={isListening}
+                  onClear={clearTranscript}
+                  onSaveToVault={handleSaveToVault}
+                  onSaveTask={handleSaveTask}
+                />
 
-            {/* History list */}
-            <TranscriptHistory
-              sessions={sessions}
-              onSelect={appendText}
-            />
+                {/* History list */}
+                <TranscriptHistory
+                  sessions={sessions}
+                  onSelect={appendText}
+                />
 
-            {/* Voice Command Feedback overlay */}
-            <VoiceCommandFeedback
-              command={lastCommand}
-              onDismiss={clearCommand}
-            />
+                {/* Voice Command Feedback overlay */}
+                <VoiceCommandFeedback
+                  command={lastCommand}
+                  onDismiss={clearCommand}
+                />
+              </>
+            )}
           </div>
         </PageWrapper>
       </AppShell>

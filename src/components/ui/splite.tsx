@@ -1,9 +1,12 @@
 'use client'
 
-import { Suspense, lazy, useState, useEffect, useRef } from 'react'
+import { Suspense, useState, useEffect, useRef } from 'react'
+import dynamic from 'next/dynamic'
 import { cn } from '@/lib/utils'
 
-const Spline = lazy(() => import('@splinetool/react-spline'))
+const Spline = dynamic(() => import('@splinetool/react-spline'), {
+  ssr: false,
+})
 
 interface SplineSceneProps {
   scene?: string
