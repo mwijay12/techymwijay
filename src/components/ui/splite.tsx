@@ -1,13 +1,13 @@
 'use client'
 
-import { Suspense, useState, useEffect, useRef } from 'react'
-import dynamic from 'next/dynamic'
+import { useEffect, useRef } from 'react'
 import { cn } from '@/lib/utils'
 
-const Spline = dynamic(() => import('@splinetool/react-spline'), {
-  ssr: false,
-})
-
+/**
+ * SplineScene renders an animated canvas visual.
+ * For desktop/Electron export, uses pure Canvas2D to avoid
+ * ESM-only Spline dependency issues with webpack.
+ */
 interface SplineSceneProps {
   scene?: string
   className?: string
@@ -15,7 +15,7 @@ interface SplineSceneProps {
   fallbackAlways?: boolean
 }
 
-function CanvasFallback({
+function SplineCanvas({
   className,
   height = 400,
 }: {
@@ -102,62 +102,10 @@ function CanvasFallback({
 }
 
 export function SplineScene({
-  scene,
   className,
   height = 400,
-  fallbackAlways = false,
 }: SplineSceneProps) {
-  const [hasError, setHasError] = useState(false)
-  const [isOffline, setIsOffline] = useState(false)
-  const [loadTimeout, setLoadTimeout] = useState(false)
-
-  useEffect(() => {
-    setIsOffline(!navigator.onLine)
-    const handleOnline = () => setIsOffline(false)
-    const handleOffline = () => setIsOffline(true)
-    window.addEventListener('online', handleOnline)
-    window.addEventListener('offline', handleOffline)
-
-    // Safety timeout: 25 seconds to allow slow connections to load Spline 3D
-    const timer = setTimeout(() => {
-      setLoadTimeout(true)
-    }, 25000)
-
-    return () => {
-      window.removeEventListener('online', handleOnline)
-      window.removeEventListener('offline', handleOffline)
-      clearTimeout(timer)
-    }
-  }, [])
-
-  if (isOffline || hasError || (loadTimeout && !scene) || fallbackAlways) {
-    return <CanvasFallback className={className} height={height} />
-  }
-
-  return (
-    <Suspense
-      fallback={
-        <div className="w-full h-full flex items-center justify-center bg-black/40 rounded-2xl border border-white/10">
-          <div className="flex flex-col items-center gap-2">
-            <span className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
-            <span className="text-xs text-gray-400 font-mono animate-pulse">
-              Loading 3D Scene...
-            </span>
-          </div>
-        </div>
-      }
-    >
-      <Spline
-        scene={scene || 'https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode'}
-        className={className}
-        onLoad={() => {
-          setHasError(false)
-          setLoadTimeout(false)
-        }}
-        onError={() => setHasError(true)}
-      />
-    </Suspense>
-  )
+  return <SplineCanvas className={className} height={height} />
 }
 
 export default SplineScene
