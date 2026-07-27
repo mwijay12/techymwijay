@@ -17,6 +17,8 @@ import {
   type ParsedVoiceCommand,
 } from '@/lib/voice-commands'
 
+import { getApiUrl } from '@/lib/runtime'
+
 declare global {
   interface Window {
     SpeechRecognition: any
@@ -149,7 +151,7 @@ export function useSpeechRecognition(): UseSpeechRecognitionReturn {
           'Tanzania, Swahili, English, code-switching, developer, student'
         )
 
-        const res = await fetch('/api/stt', {
+        const res = await fetch(getApiUrl('/api/stt'), {
           method: 'POST',
           body: formData,
         })
@@ -226,7 +228,7 @@ export function useSpeechRecognition(): UseSpeechRecognitionReturn {
     sessionStartRef.current = Date.now()
     setActiveEngine('detecting')
 
-    const groqHealthRes = await fetch('/api/stt')
+    const groqHealthRes = await fetch(getApiUrl('/api/stt'))
       .then(r => r.json())
       .catch(() => ({ keysAvailable: 0 }))
 

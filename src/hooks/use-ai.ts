@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import type { AIMessage, AIProvider } from '@/types/ai'
+import { getApiUrl } from '@/lib/runtime'
 
 interface UseAIOptions {
   preferredProvider?: AIProvider
@@ -69,7 +70,7 @@ export function useAI(options: UseAIOptions = {}): UseAIReturn {
       ]
 
       try {
-        const response = await fetch('/api/ai/chat', {
+        const response = await fetch(getApiUrl('/api/ai/chat'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

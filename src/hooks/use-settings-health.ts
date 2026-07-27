@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import type { AIProvider } from '@/types/ai'
+import { getApiUrl } from '@/lib/runtime'
 
 export interface ProviderHealth {
   provider: AIProvider
@@ -60,7 +61,7 @@ export function useSettingsHealth() {
   const fetchHealth = useCallback(async () => {
     setIsLoading(true)
     try {
-      const res = await fetch('/api/ai/health')
+      const res = await fetch(getApiUrl('/api/ai/health'))
       if (!res.ok) throw new Error('Health check failed')
 
       const data = await res.json()
@@ -130,7 +131,7 @@ export function useSettingsHealth() {
           return true
         }
 
-        const res = await fetch('/api/ai/chat', {
+        const res = await fetch(getApiUrl('/api/ai/chat'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

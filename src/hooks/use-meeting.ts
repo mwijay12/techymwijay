@@ -4,6 +4,7 @@ import { useState, useCallback, useRef, useEffect } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import { useMicrophone } from './use-microphone'
 import { formatTranscript, detectLanguageMix } from '@/lib/swahili-processor'
+import { getApiUrl } from '@/lib/runtime'
 import {
   createMeetingSession,
   addChunkToSession,
@@ -154,7 +155,7 @@ export function useMeeting(): UseMeetingReturn {
           'Tanzania, Swahili, English, lecture, meeting, code-switching'
         )
 
-        const res = await fetch('/api/stt', {
+        const res = await fetch(getApiUrl('/api/stt'), {
           method: 'POST',
           body: formData,
         })
@@ -401,7 +402,7 @@ Keep it concise and practical.
 TRANSCRIPT:
 ${transcript.slice(0, 8000)}`
 
-      const res = await fetch('/api/ai/chat', {
+      const res = await fetch(getApiUrl('/api/ai/chat'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

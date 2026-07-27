@@ -7,6 +7,7 @@ import {
 } from 'react'
 import { useAuth } from '@/components/auth/AuthProvider'
 import { useAppSettings } from '@/hooks/use-app-settings'
+import { getApiUrl } from '@/lib/runtime'
 import {
   loadChatFromStorage,
   saveChatToStorage,
@@ -153,7 +154,7 @@ export function useChat(): UseChatReturn {
         let provider: AIProvider = 'openrouter'
         let usedPuter = false
 
-        const response = await fetch('/api/ai/chat', {
+        const response = await fetch(getApiUrl('/api/ai/chat'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

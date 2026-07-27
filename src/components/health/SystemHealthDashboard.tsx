@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { HealthCheckItem, type HealthStatus } from './HealthCheck'
 import { useAppState } from '@/hooks/use-app-state'
+import { getApiUrl } from '@/lib/runtime'
 
 interface ServiceHealth {
   name: string
@@ -45,7 +46,7 @@ export function SystemHealthDashboard() {
     let dbStatus: HealthStatus = 'down'
     let dbDetails = {}
     try {
-      const res = await fetch('/api/ai/health')
+      const res = await fetch(getApiUrl('/api/ai/health'))
       if (res.ok) {
         dbStatus = 'healthy'
       } else {
@@ -63,7 +64,7 @@ export function SystemHealthDashboard() {
     let aiMessage = ''
     let aiDetails = {}
     try {
-      const res = await fetch('/api/ai/health')
+      const res = await fetch(getApiUrl('/api/ai/health'))
       const data = await res.json()
       if (res.ok && data.providers) {
         aiStatus = data.providers.total > 0 || data.providers.puter > 0 ? 'healthy' : 'degraded'
@@ -81,7 +82,7 @@ export function SystemHealthDashboard() {
     let sttStatus: HealthStatus = 'checking'
     let sttMessage = ''
     try {
-      const res = await fetch('/api/stt')
+      const res = await fetch(getApiUrl('/api/stt'))
       const data = await res.json()
       if (res.ok && data.status === 'ok') {
         sttStatus = 'healthy'
@@ -97,7 +98,7 @@ export function SystemHealthDashboard() {
     let ttsStatus: HealthStatus = 'checking'
     let ttsMessage = ''
     try {
-      const res = await fetch('/api/tts')
+      const res = await fetch(getApiUrl('/api/tts'))
       const data = await res.json()
       if (res.ok && data.status === 'ok') {
         ttsStatus = 'healthy'

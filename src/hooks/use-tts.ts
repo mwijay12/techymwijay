@@ -7,6 +7,7 @@ import {
   useEffect,
 } from 'react'
 import { useAppSettings } from '@/hooks/use-app-settings'
+import { getApiUrl } from '@/lib/runtime'
 
 export type TTSEngine = 'elevenlabs' | 'browser' | 'detecting'
 export type PlaybackState = 'idle' | 'loading' | 'playing' | 'paused' | 'error'
@@ -288,7 +289,7 @@ export function useTTS(): UseTTSReturn {
   const speakWithElevenLabs = useCallback(
     async (text: string, voiceId: string): Promise<boolean> => {
       try {
-        const response = await fetch('/api/tts', {
+        const response = await fetch(getApiUrl('/api/tts'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -503,7 +504,7 @@ export function useTTS(): UseTTSReturn {
       setPlaybackState('loading')
 
       try {
-        const response = await fetch('/api/tts', {
+        const response = await fetch(getApiUrl('/api/tts'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
