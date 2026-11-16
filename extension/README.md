@@ -1,42 +1,36 @@
-# Mwijay Tech — Chrome Extension (Manifest V3)
+# Mwijay Tech — Browser Extension
 
-The official Chrome/Edge extension for **Mwijay Tech — Personal AI Productivity OS & Voice Studio**.
+A Manifest V3 extension for Chrome and compatible Chromium browsers. The extension provides Swahili/English dictation, read-aloud, quick text clips, and an optional local vault.
 
----
+## Features
 
-## ⚡ Features
+- **Voice dictation:** use the toolbar popup or `Alt+M` (`Command+Shift+M` on macOS). On webpages, focus an editable field and use the injected microphone or shortcut; review the transcript and choose **Insert Text** to add it at the caret.
+- **Read aloud:** select text, then use the right-click menu. Browser speech voices and languages vary by platform.
+- **Local vault and clips:** save items from the popup or a page selection. Items stay in this browser profile using `chrome.storage.local`; they are **not encrypted and are not synced to an account or cloud**. Do not use this as a password manager for sensitive credentials.
+- **Text to speech:** use a local browser voice, or request online speech from the Mwijay Tech web service. Online synthesis requires internet access and is separate from local vault storage.
+- **Quick links:** open the web app or Chrome side panel from the popup.
 
-1. **🎙️ Voice Dictation (Swahili-English)**:
-   - Click the mic button in the popup or press `Alt+M` (or `Cmd+Shift+M` on Mac) anywhere on any website.
-   - Text appears in real-time in the focused input field or floating overlay.
-2. **🔊 Text to Speech (Read Aloud)**:
-   - Highlight any text on any webpage → right-click → **"Read aloud with Mwijay Voice"**.
-3. **🔐 Quick Vault Save**:
-   - Highlight text or code → right-click → **"Save selection to Mwijay Vault"**.
-   - Direct sync to your encrypted Developer Vault.
-4. **📍 Injected Floating Mic Button**:
-   - Automatically appears when you click on any text input or textarea on any webpage.
-5. **⚡ Quick Route Openers**:
-   - One-click shortcuts to open Vault, Todos, Spending, and Meeting Transcription in Mwijay Tech OS.
+Speech recognition and synthesis are supplied by the browser/operating system. Language support, microphone prompts, and online recognition availability differ between browsers. The microphone permission page only asks for access after the user presses its button.
 
----
+## Install for development
 
-## 🚀 How to Install in Chrome / Edge (Developer Mode)
+1. Open `chrome://extensions` (or `edge://extensions`).
+2. Enable **Developer mode**.
+3. Choose **Load unpacked** and select this `extension/` folder.
+4. Pin **Mwijay Tech — Voice Studio & Local Vault** to the toolbar.
 
-1. Open Chrome or Edge and navigate to `chrome://extensions` or `edge://extensions`.
-2. Toggle **Developer mode** in the top-right corner.
-3. Click **Load unpacked**.
-4. Select the `extension/` directory from this project root (`tech website/extension`).
-5. Pin the **Mwijay Tech** extension to your browser toolbar!
+After changing extension files, reload the extension from the extensions page.
 
----
+## Privacy and permissions
 
-## ⌨️ Shortcuts
+- The extension runs a content script on webpages to provide the optional inline microphone and dictation shortcut. The browser therefore requests broad webpage access.
+- Vault data and unsent dictation drafts use extension-local storage. The extension does not upload saved vault items or snippets.
+- The extension requests access to `techymwijay.vercel.app` only for online TTS. Entered speech text is sent to that service when **Online voice** is selected; choose **Device voice** to keep synthesis local.
+- Removing the extension or clearing extension data removes locally stored items. Export/restore and encryption are not currently available.
 
-- `Alt+M` (or `Cmd+Shift+M` on Mac): Start/stop voice dictation in any focused input field.
-- Right-Click Menu: Access Vault saving, Read Aloud, and Dictation.
+## Shortcuts
 
----
+- `Alt+M` (macOS: `Command+Shift+M`): start/stop dictation in the focused editable field.
+- Right-click a selection for **Save selection**, **Save as web clip**, or **Read aloud**.
 
-Built by **Davie Mwijay** — Dar es Salaam, Tanzania 🇹🇿
-© 2026 Mwijay Tech
+Built by Davie Mwijay — Dar es Salaam, Tanzania.

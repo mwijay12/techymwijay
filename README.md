@@ -34,7 +34,7 @@
 | 🧠 **Memory** | Personal AI Memory | Living preference profile automatically injected into AI chat calls for personalized responses | ✅ Live |
 | 🤖 **AI Chat** | Multi-Provider Chat | Multi-model failover pool (OpenRouter → Groq → HuggingFace → Puter.js) with `Ctrl+K` shortcut | ✅ Live |
 | 🖥️ **Desktop** | Electron Application | Native desktop window with system tray, `Ctrl+Shift+M` dictation hotkey, clipboard watcher & screenshots | ✅ Live |
-| 🌐 **Extension**| Chrome Extension V3 | Injects voice mic button into any input field on any webpage (`Alt+M` hotkey) | ✅ Live |
+| 🌐 **Extension** | Chrome Extension V3 | Dictation on editable fields, read-aloud, and device-local clips; extension vault data is not encrypted or cloud-synced (`Alt+M`) | ✅ Live |
 | 📱 **PWA** | Installable Web App | Service Worker offline caching, background sync queue, conflict resolution (last-write-wins) | ✅ Live |
 | 🛡️ **Sync** | Multi-Tab Hardening | BroadcastChannel cross-tab coordination preventing duplicate Firestore writes & locks | ✅ Live |
 | 📊 **Health** | System Health Checker | In-app integration test runner & live API latency verification dashboard (`/health`) | ✅ Live |

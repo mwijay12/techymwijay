@@ -21,7 +21,7 @@ async function requestMicPermission() {
     await chrome.storage.sync.set({ mwijay_mic_granted: true })
 
     statusBadge.className = 'status-badge success'
-    statusBadge.innerHTML = '✅ Microphone permission granted! You can close this tab now and return to the extension.'
+    statusBadge.textContent = '✅ Microphone permission granted! You can close this tab now and return to the extension.'
 
     grantBtn.style.display = 'none'
 
@@ -34,13 +34,8 @@ async function requestMicPermission() {
     grantBtn.textContent = '🎤 Try Allowing Microphone Again'
 
     statusBadge.className = 'status-badge error'
-    statusBadge.innerHTML = `⚠️ Microphone permission failed: ${err.message || 'Blocked by browser settings'}. Please allow microphone in site settings.`
+    statusBadge.textContent = `⚠️ Microphone permission failed: ${err.message || 'Blocked by browser settings'}. Please allow microphone in site settings.`
   }
 }
 
 grantBtn.addEventListener('click', requestMicPermission)
-
-// Automatically request on load
-window.addEventListener('DOMContentLoaded', () => {
-  requestMicPermission()
-})

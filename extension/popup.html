@@ -18,12 +18,12 @@
 
     body {
       width: 380px;
-      min-height: 550px;
-      max-height: 600px;
+      min-height: 520px;
+      max-height: 640px;
       background: #0b0c15;
       color: #e2e8f0;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      font-size: 11px;
+      font-size: 12px;
       overflow-x: hidden;
       display: flex;
       flex-direction: column;
@@ -84,7 +84,7 @@
     }
 
     .logo-sub {
-      font-size: 8px;
+      font-size: 10px;
       color: #94a3b8;
       margin-top: -1px;
     }
@@ -95,7 +95,7 @@
       color: #cbd5e1;
       border-radius: 10px;
       padding: 5px 9px;
-      font-size: 9px;
+      font-size: 10px;
       font-weight: 700;
       cursor: pointer;
       transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -115,7 +115,7 @@
       padding: 8px 14px;
       background: rgba(9, 10, 16, 0.5);
       border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-      font-size: 9px;
+      font-size: 10px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -138,7 +138,7 @@
     .auth-dot.offline { background: #f59e0b; }
 
     .sync-badge {
-      font-size: 8px;
+      font-size: 10px;
       background: rgba(99, 102, 241, 0.1);
       color: #a5b4fc;
       border: 1px solid rgba(99, 102, 241, 0.25);
@@ -153,7 +153,7 @@
       color: #a5b4fc;
       border-radius: 6px;
       padding: 2.5px 7px;
-      font-size: 8px;
+      font-size: 10px;
       font-weight: 700;
       cursor: pointer;
     }
@@ -253,7 +253,7 @@
       flex: 1;
       padding: 6px 4px;
       border-radius: 9px;
-      font-size: 9px;
+      font-size: 10px;
       font-weight: 700;
       color: #94a3b8;
       background: transparent;
@@ -317,7 +317,7 @@
     }
 
     .mic-status {
-      font-size: 9px;
+      font-size: 10px;
       color: #94a3b8;
       font-weight: 600;
       letter-spacing: 0.3px;
@@ -409,7 +409,7 @@
     }
 
     .form-label {
-      font-size: 8px;
+      font-size: 10px;
       font-weight: 700;
       color: #94a3b8;
       text-transform: uppercase;
@@ -445,7 +445,7 @@
       background: rgba(16, 185, 129, 0.95);
       color: white;
       font-weight: 800;
-      font-size: 9px;
+      font-size: 10px;
       padding: 6px 14px;
       border-radius: 20px;
       z-index: 1000;
@@ -454,6 +454,25 @@
     }
 
     .toast.show { display: block; }
+
+    button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+      outline: 2px solid #a5b4fc;
+      outline-offset: 2px;
+    }
+
+    .privacy-note {
+      color: #94a3b8;
+      font-size: 10px;
+      line-height: 1.4;
+      padding: 7px 9px;
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 10px;
+      background: rgba(255,255,255,.025);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
 
     /* ========================================== */
     /*   DIFFERENT DESIGN MINI MODE (Island pill)  */
@@ -544,32 +563,13 @@
     </div>
   </div>
 
-  <!-- Auth Bar -->
-  <div class="auth-bar">
+  <!-- Honest storage indicator: vault data stays in this browser profile. -->
+  <div class="auth-bar" role="status" aria-label="Storage location">
     <div class="auth-info">
-      <div class="auth-dot online" id="authDot"></div>
-      <span id="authText">Davie Mwijay</span>
+      <div class="auth-dot offline" aria-hidden="true"></div>
+      <span>Stored on this device</span>
     </div>
-    <div style="display: flex; gap: 4px; align-items: center;">
-      <span class="sync-badge" id="syncBadge">☁️ Synced</span>
-      <button class="auth-toggle-btn" id="toggleAuthModalBtn">🔑 Login</button>
-    </div>
-  </div>
-
-  <!-- Auth Modal Form -->
-  <div class="vault-form-modal" id="authModal">
-    <div class="form-group">
-      <label class="form-label">Email Address</label>
-      <input type="email" id="authEmail" class="form-input" placeholder="user@mwijaytech.com" />
-    </div>
-    <div class="form-group">
-      <label class="form-label">Password</label>
-      <input type="password" id="authPassword" class="form-input" placeholder="Enter account password..." />
-    </div>
-    <div class="form-actions">
-      <button class="action-btn" id="closeAuthBtn">Close</button>
-      <button class="action-btn primary" id="doLoginBtn">Sign In ✓</button>
-    </div>
+    <span class="sync-badge" title="Vault entries are not uploaded to the cloud">🖥 Device only</span>
   </div>
 
   <!-- Tab Navigation buttons -->
@@ -588,9 +588,10 @@
   <!-- TAB 1: VAULT & PASSWORDS -->
   <div class="tab-content" id="vaultTab">
     <div class="add-vault-header">
-      <span class="logo-text" style="font-size: 11px;">Saved Secrets</span>
-      <button class="add-btn" id="toggleAddFormBtn">+ Add Secret</button>
+      <span class="logo-text" style="font-size: 12px;">Saved Items</span>
+      <button class="add-btn" id="toggleAddFormBtn">+ Add Item</button>
     </div>
+    <p class="privacy-note">Saved in this browser only. Not encrypted or cloud-synced.</p>
 
     <!-- Vault Add Form -->
     <div class="vault-form-modal" id="vaultFormModal">
@@ -600,7 +601,7 @@
           <option value="password">🔑 Login Password</option>
           <option value="api-key">⚡ API Key / Secret Token</option>
           <option value="card">💳 Card / Payment</option>
-          <option value="note">📝 Encrypted Note</option>
+          <option value="note">📝 Note</option>
         </select>
       </div>
 
@@ -610,8 +611,8 @@
       </div>
 
       <div class="form-group">
-        <label class="form-label">Username / Key Identifier</label>
-        <input type="text" id="formNotes" class="form-input" placeholder="e.g. user@email.com or sk-..." />
+        <label class="form-label">Username / Notes</label>
+        <input type="text" id="formNotes" class="form-input" placeholder="Optional identifier or note" />
       </div>
 
       <div class="form-group">
@@ -650,8 +651,7 @@
   <div class="tab-content active" id="voiceTab">
     <!-- Dictation Section -->
     <div class="lang-selector">
-      <button class="lang-btn" data-lang="sw-KE">🇹🇿 Swahili</button>
-      <button class="lang-btn active" data-lang="auto">🌍 Auto</button>
+      <button class="lang-btn active" data-lang="sw-TZ">🇹🇿 Swahili</button>
       <button class="lang-btn" data-lang="en-US">🇺🇸 English</button>
     </div>
 
@@ -662,7 +662,8 @@
     </div>
 
     <!-- Inline Editable Text area -->
-    <textarea class="transcript-area" id="transcriptArea" placeholder="Transcript appears here..." rows="3"></textarea>
+    <textarea class="transcript-area" id="transcriptArea" placeholder="Transcript appears here..." rows="3" aria-label="Dictation transcript"></textarea>
+    <p class="footer-text">Voice recognition is provided by your browser and may require an internet connection.</p>
 
     <!-- STT Action Bar -->
     <div class="action-row">
@@ -673,20 +674,19 @@
     </div>
 
     <!-- Collapsible Text-to-Speech Settings -->
-    <div id="ttsCollapsibleSection" style="display: none; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 10px; display: flex; flex-direction: column; gap: 8px;">
-      
-      <div class="engine-selector">
-        <button class="engine-chip active" data-engine="elevenlabs">ElevenLabs</button>
-        <button class="engine-chip" data-engine="puter">Puter.js</button>
-        <button class="engine-chip" data-engine="browser">Browser Native</button>
+    <div id="ttsCollapsibleSection" style="display: none; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 10px; flex-direction: column; gap: 8px;">
+
+      <div class="engine-selector" aria-label="Speech engine">
+        <button class="engine-chip" data-engine="elevenlabs">Online voice</button>
+        <button class="engine-chip active" data-engine="browser">Device voice</button>
       </div>
 
-      <div class="form-group">
+      <div class="form-group" id="ttsVoiceGroup" style="display:none">
+        <label class="form-label" for="ttsVoiceSelect">Online voice</label>
         <select id="ttsVoiceSelect" class="form-select" style="padding: 6px 10px;">
-          <option value="21m00Tcm4TlvDq8ikWAM">Rachel (ElevenLabs)</option>
-          <option value="AZnzlk1XvdvUeBnXmlld">Domi (ElevenLabs)</option>
-          <option value="pNInz6obpgDQGcFmaJgB">Adam (ElevenLabs)</option>
-          <option value="puter-sw">Puter.js Swahili Engine</option>
+          <option value="21m00Tcm4TlvDq8ikWAM">Rachel</option>
+          <option value="AZnzlk1XvdvUeBnXmlld">Domi</option>
+          <option value="pNInz6obpgDQGcFmaJgB">Adam</option>
         </select>
       </div>
 
@@ -722,7 +722,7 @@
 
   <!-- Footer -->
   <div class="footer">
-    <span class="footer-text">MVS OS v1.2.0</span>
+    <span class="footer-text">Mwijay Voice · v1.3.0</span>
     <span class="footer-text">Hotkey: <span class="kbd">Alt+M</span></span>
   </div>
 

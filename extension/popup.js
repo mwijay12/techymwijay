@@ -1,32 +1,18 @@
-/**
- * Mwijay Tech Extension — Popup Script v1.2.0
- * Handles Auth Session, Passwords Vault, Web Snippets, STT dictation,
- * and Multi-Engine TTS (ElevenLabs, Puter.js, Browser Native).
- */
+/** Mwijay Tech Extension popup: local vault, dictation and speech tools. */
 
 'use strict'
 
 const WEB_APP_URL = 'https://techymwijay.vercel.app'
-const LOCAL_APP_URL = 'http://localhost:3000'
-const FIREBASE_CONFIG = {
-  apiKey: 'AIzaSyCMJDUMO1-LJWkNCLJF6i8Di9rG4aZJwFU',
-  projectId: 'mwijaytech-b9c98',
-}
 
 let vaultItems = []
-let activeTab = 'vaultTab'
 let activeCategory = 'all'
-let activeEngine = 'elevenlabs'
+let activeEngine = 'browser'
 let recognition = null
 let isRecording = false
-let currentLanguage = 'auto'
+let currentLanguage = 'sw-TZ'
 let currentTranscript = ''
 let activeAudio = null
 
-let currentUser = {
-  email: 'davie.mwijay@mwijaytech.com',
-  isLoggedIn: true,
-}
 
 // DOM Elements
 const toast = document.getElementById('toast')
@@ -43,13 +29,6 @@ const formCategory = document.getElementById('formCategory')
 const formValue = document.getElementById('formValue')
 const formNotes = document.getElementById('formNotes')
 
-const authText = document.getElementById('authText')
-const toggleAuthModalBtn = document.getElementById('toggleAuthModalBtn')
-const authModal = document.getElementById('authModal')
-const closeAuthBtn = document.getElementById('closeAuthBtn')
-const doLoginBtn = document.getElementById('doLoginBtn')
-const authEmail = document.getElementById('authEmail')
-const authPassword = document.getElementById('authPassword')
 
 const micBtn = document.getElementById('micBtn')
 const micStatus = document.getElementById('micStatus')
@@ -60,6 +39,7 @@ const saveVaultBtn = document.getElementById('saveVaultBtn')
 
 const ttsInput = document.getElementById('ttsInput')
 const ttsVoiceSelect = document.getElementById('ttsVoiceSelect')
+const ttsVoiceGroup = document.getElementById('ttsVoiceGroup')
 const ttsSpeedRange = document.getElementById('ttsSpeedRange')
 const speedVal = document.getElementById('speedVal')
 const speakBtn = document.getElementById('speakBtn')
@@ -76,60 +56,6 @@ function showToast(message, duration = 2200) {
   setTimeout(() => toast.classList.remove('show'), duration)
 }
 
-// ─── AUTH & LOGIN LOGIC ──────────────────────────────────────
-async function loadAuthSession() {
-  try {
-    const data = await chrome.storage.local.get(['mwijay_auth_user'])
-    if (data.mwijay_auth_user) {
-      currentUser = data.mwijay_auth_user
-    }
-  } catch (err) {}
-  updateAuthUI()
-}
-
-function updateAuthUI() {
-  if (!authText) return
-  if (currentUser && currentUser.isLoggedIn) {
-    authText.textContent = `${currentUser.email.split('@')[0]} (Logged In)`
-    if (toggleAuthModalBtn) toggleAuthModalBtn.textContent = 'Account'
-  } else {
-    authText.textContent = 'Not Logged In'
-    if (toggleAuthModalBtn) toggleAuthModalBtn.textContent = '🔑 Login'
-  }
-}
-
-if (toggleAuthModalBtn) {
-  toggleAuthModalBtn.addEventListener('click', () => {
-    authModal.classList.toggle('active')
-  })
-}
-
-if (closeAuthBtn) {
-  closeAuthBtn.addEventListener('click', () => {
-    authModal.classList.remove('active')
-  })
-}
-
-if (doLoginBtn) {
-  doLoginBtn.addEventListener('click', async () => {
-    const email = authEmail.value.trim()
-    const password = authPassword.value.trim()
-    if (!email || !password) {
-      showToast('⚠️ Please enter email & password')
-      return
-    }
-
-    currentUser = {
-      email,
-      isLoggedIn: true,
-    }
-    await chrome.storage.local.set({ mwijay_auth_user: currentUser })
-    updateAuthUI()
-    authModal.classList.remove('active')
-    showToast(`✅ Welcome back, ${email.split('@')[0]}!`)
-  })
-}
-
 // ─── TAB NAVIGATION ─────────────────────────────────────────
 document.querySelectorAll('.tab-btn').forEach((btn) => {
   btn.addEventListener('click', () => {
@@ -139,7 +65,18 @@ document.querySelectorAll('.tab-btn').forEach((btn) => {
     btn.classList.add('active')
     const targetTab = document.getElementById(btn.dataset.tab)
     if (targetTab) targetTab.classList.add('active')
-    activeTab = btn.dataset.tab
+  })
+})
+
+// Language selection (recognition itself is handled by the browser).
+document.querySelectorAll('.lang-btn').forEach((button) => {
+  button.addEventListener('click', async () => {
+    document.querySelectorAll('.lang-btn').forEach((item) => item.classList.remove('active'))
+    button.classList.add('active')
+    currentLanguage = button.dataset.lang || 'sw-TZ'
+    await chrome.storage.sync.set({ mwijay_lang: currentLanguage })
+    if (recognition) recognition.lang = currentLanguage
+    showToast(currentLanguage === 'sw-TZ' ? '🇹🇿 Swahili selected' : '🇺🇸 English selected')
   })
 })
 
@@ -150,14 +87,11 @@ document.querySelectorAll('.engine-chip').forEach((chip) => {
     chip.classList.add('active')
     activeEngine = chip.dataset.engine
 
+    if (ttsVoiceGroup) ttsVoiceGroup.style.display = activeEngine === 'elevenlabs' ? 'flex' : 'none'
     if (activeEngine === 'elevenlabs') {
-      ttsVoiceSelect.value = '21m00Tcm4TlvDq8ikWAM'
-      showToast('✨ ElevenLabs HD Engine Selected')
-    } else if (activeEngine === 'puter') {
-      ttsVoiceSelect.value = 'puter-sw'
-      showToast('🌐 Puter.js Unlimited Engine Selected')
+      showToast('🌐 Online voice selected. Text is sent to Mwijay Tech for synthesis.')
     } else {
-      showToast('💻 Browser Speech Synthesis Selected')
+      showToast('💻 Device voice selected')
     }
   })
 })
@@ -222,8 +156,8 @@ if (saveFormBtn) {
     }
 
     vaultItems.unshift(newItem)
+    vaultItems = vaultItems.slice(0, 500)
     await saveVaultItemsToStorage()
-    syncVaultItemToCloud(newItem)
 
     // Reset Form
     formTitle.value = ''
@@ -236,107 +170,27 @@ if (saveFormBtn) {
   })
 }
 
-// ─── STORAGE & CLOUD SYNC ───────────────────────────────────
+// ─── LOCAL STORAGE ──────────────────────────────────────────
 async function loadVaultItems() {
   try {
     const data = await chrome.storage.local.get(['mwijay_vault_items'])
     if (data.mwijay_vault_items && Array.isArray(data.mwijay_vault_items)) {
-      vaultItems = data.mwijay_vault_items
+      // Remove only the known placeholder records from older extension builds.
+      vaultItems = data.mwijay_vault_items.filter((item) => !['v_init_1', 'v_init_2'].includes(item?.id))
+      if (vaultItems.length !== data.mwijay_vault_items.length) await saveVaultItemsToStorage()
     } else {
-      vaultItems = [
-        {
-          id: 'v_init_1',
-          title: 'OpenRouter Multi-Key Pool',
-          category: 'api-key',
-          value: 'sk-or-v1-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
-          notes: 'Active key for AI voice model',
-          createdAt: new Date().toISOString(),
-        },
-        {
-          id: 'v_init_2',
-          title: 'Davie Mwijay Account',
-          category: 'password',
-          value: 'your-secure-password-here',
-          notes: 'admin@mwijaytech.app',
-          createdAt: new Date().toISOString(),
-        },
-      ]
+      vaultItems = []
       await saveVaultItemsToStorage()
     }
   } catch (err) {
     console.error('Failed to load vault items:', err)
   }
 
-  fetchCloudVaultItems()
   renderVaultList()
 }
 
 async function saveVaultItemsToStorage() {
   await chrome.storage.local.set({ mwijay_vault_items: vaultItems })
-}
-
-async function syncVaultItemToCloud(item) {
-  try {
-    const doc = {
-      fields: {
-        userId: { stringValue: currentUser.email },
-        title: { stringValue: item.title },
-        category: { stringValue: item.category },
-        content: { stringValue: item.value },
-        notes: { stringValue: item.notes || '' },
-        tags: { arrayValue: { values: [{ stringValue: 'extension' }] } },
-        isPinned: { booleanValue: false },
-        createdAt: { stringValue: item.createdAt },
-        updatedAt: { stringValue: new Date().toISOString() },
-      },
-    }
-
-    const url = `https://firestore.googleapis.com/v1/projects/${FIREBASE_CONFIG.projectId}/databases/(default)/documents/vault_items?key=${FIREBASE_CONFIG.apiKey}`
-    await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(doc),
-    })
-  } catch (err) {
-    console.warn('Cloud sync offline')
-  }
-}
-
-async function fetchCloudVaultItems() {
-  try {
-    const url = `https://firestore.googleapis.com/v1/projects/${FIREBASE_CONFIG.projectId}/databases/(default)/documents/vault_items?key=${FIREBASE_CONFIG.apiKey}`
-    const res = await fetch(url)
-    if (res.ok) {
-      const data = await res.json()
-      if (data.documents) {
-        let itemsUpdated = false
-        for (const doc of data.documents) {
-          const fields = doc.fields
-          if (!fields) continue
-          const title = fields.title?.stringValue || 'Untitled'
-          const value = fields.content?.stringValue || ''
-          const category = fields.category?.stringValue || 'snippet'
-
-          const exists = vaultItems.some((v) => v.title === title || v.value === value)
-          if (!exists && value) {
-            vaultItems.push({
-              id: doc.name.split('/').pop(),
-              title,
-              category,
-              value,
-              notes: fields.notes?.stringValue || '',
-              createdAt: fields.createdAt?.stringValue || new Date().toISOString(),
-            })
-            itemsUpdated = true
-          }
-        }
-        if (itemsUpdated) {
-          await saveVaultItemsToStorage()
-          renderVaultList()
-        }
-      }
-    }
-  } catch (e) {}
 }
 
 // ─── VAULT RENDERER ─────────────────────────────────────────
@@ -349,7 +203,7 @@ function renderVaultList() {
     const matchesQuery =
       item.title.toLowerCase().includes(query) ||
       (item.notes || '').toLowerCase().includes(query) ||
-      (item.value || '').toLowerCase().includes(query)
+      (item.category || '').toLowerCase().includes(query)
     return matchesCat && matchesQuery
   })
 
@@ -395,10 +249,10 @@ function renderVaultList() {
         </div>
         ${item.notes ? `<div style="font-size: 10px; color: #94a3b8; margin-bottom: 4px;">${escapeHtml(item.notes)}</div>` : ''}
         <div class="vault-value-row">
-          <span class="vault-masked-val" id="val-${item.id}" data-raw="${escapeHtml(item.value)}" data-masked="${escapeHtml(maskedVal)}">${escapeHtml(maskedVal)}</span>
+          <span class="vault-masked-val" id="val-${item.id}" data-masked="${escapeHtml(maskedVal)}">${escapeHtml(maskedVal)}</span>
           <div class="vault-card-actions">
-            <button class="card-icon-btn toggle-reveal-btn" data-id="${item.id}" title="Show/Hide Secret">👁️</button>
-            <button class="card-icon-btn copy-secret-btn" data-val="${escapeHtml(item.value)}" title="Copy to Clipboard">📋</button>
+            <button class="card-icon-btn toggle-reveal-btn" data-id="${item.id}" title="Show/Hide Secret" aria-label="Show or hide secret">👁️</button>
+            <button class="card-icon-btn copy-secret-btn" data-id="${item.id}" title="Copy to Clipboard" aria-label="Copy secret">📋</button>
             <button class="card-icon-btn delete-secret-btn" data-id="${item.id}" title="Delete Item">🗑️</button>
           </div>
         </div>
@@ -408,23 +262,27 @@ function renderVaultList() {
 
   renderClipsList()
 
-  document.querySelectorAll('.toggle-reveal-btn').forEach((btn) => {
+  vaultList.querySelectorAll('.toggle-reveal-btn').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       const id = btn.dataset.id
       const valEl = document.getElementById(`val-${id}`)
       if (valEl) {
-        const isRevealed = valEl.textContent === valEl.dataset.raw
-        valEl.textContent = isRevealed ? valEl.dataset.masked : valEl.dataset.raw
+        const item = vaultItems.find((entry) => entry.id === id)
+        if (!item) return
+        const isRevealed = btn.dataset.revealed === 'true'
+        valEl.textContent = isRevealed ? valEl.dataset.masked : item.value
+        btn.dataset.revealed = String(!isRevealed)
         btn.textContent = isRevealed ? '👁️' : '🙈'
       }
     })
   })
 
-  document.querySelectorAll('.copy-secret-btn').forEach((btn) => {
+  vaultList.querySelectorAll('.copy-secret-btn').forEach((btn) => {
     btn.addEventListener('click', async (e) => {
-      const val = btn.dataset.val
+      const item = vaultItems.find((entry) => entry.id === btn.dataset.id)
+      if (!item) return
       try {
-        await navigator.clipboard.writeText(val)
+        await navigator.clipboard.writeText(item.value)
         showToast('📋 Copied secret to clipboard!')
       } catch (err) {
         showToast('⚠️ Copy failed')
@@ -432,9 +290,10 @@ function renderVaultList() {
     })
   })
 
-  document.querySelectorAll('.delete-secret-btn').forEach((btn) => {
+  vaultList.querySelectorAll('.delete-secret-btn').forEach((btn) => {
     btn.addEventListener('click', async (e) => {
       const id = btn.dataset.id
+      if (!window.confirm('Delete this saved item from this device?')) return
       vaultItems = vaultItems.filter((i) => i.id !== id)
       await saveVaultItemsToStorage()
       renderVaultList()
@@ -467,7 +326,7 @@ function renderClipsList() {
       </div>
       <div style="font-size: 11px; color: #cbd5e1; margin: 4px 0; line-height: 1.4; white-space: pre-wrap;">${escapeHtml(c.value.slice(0, 180))}${c.value.length > 180 ? '...' : ''}</div>
       <div class="vault-card-actions" style="justify-content: flex-end;">
-        <button class="action-btn copy-secret-btn" data-val="${escapeHtml(c.value)}">📋 Copy Text</button>
+        <button class="action-btn copy-secret-btn" data-id="${c.id}">📋 Copy Text</button>
       </div>
     </div>`
     )
@@ -475,8 +334,14 @@ function renderClipsList() {
 
   clipsList.querySelectorAll('.copy-secret-btn').forEach((btn) => {
     btn.addEventListener('click', async () => {
-      await navigator.clipboard.writeText(btn.dataset.val)
-      showToast('📋 Copied snippet!')
+      const clip = vaultItems.find((item) => item.id === btn.dataset.id)
+      if (!clip) return
+      try {
+        await navigator.clipboard.writeText(clip.value)
+        showToast('📋 Copied snippet!')
+      } catch {
+        showToast('⚠️ Copy failed')
+      }
     })
   })
 }
@@ -509,7 +374,7 @@ function setupRecognition() {
   recognition = new SpeechRecognition()
   recognition.continuous = true
   recognition.interimResults = true
-  recognition.lang = currentLanguage === 'auto' || currentLanguage === 'sw-KE' ? 'sw-KE' : currentLanguage
+  recognition.lang = currentLanguage
 
   recognition.onstart = () => {
     isRecording = true
@@ -546,7 +411,7 @@ function setupRecognition() {
   recognition.onerror = (event) => {
     if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
       showToast('⚠️ Mic permission required!')
-      chrome.tabs.create({ url: 'request_mic.html' })
+      chrome.tabs.create({ url: chrome.runtime.getURL('request_mic.html') })
     }
     stopRecording()
   }
@@ -599,21 +464,25 @@ async function startRecording() {
     stream.getTracks().forEach(t => t.stop())
   } catch (err) {
     showToast('⚠️ Microphone permission required!')
-    chrome.tabs.create({ url: 'request_mic.html' })
+    chrome.tabs.create({ url: chrome.runtime.getURL('request_mic.html') })
     return
   }
 
   if (!recognition) recognition = setupRecognition()
   if (!recognition) return
   try {
-    recognition.lang = currentLanguage === 'auto' ? 'sw-KE' : currentLanguage
+    recognition.lang = currentLanguage
     recognition.start()
-  } catch (err) {}
+  } catch (err) {
+    showToast('⚠️ Could not start speech recognition. Try again.')
+  }
 }
 
 function stopRecording() {
   isRecording = false
-  if (recognition) recognition.stop()
+  if (recognition) {
+    try { recognition.stop() } catch {}
+  }
   if (micBtn) {
     micBtn.classList.remove('recording')
     micBtn.textContent = '🎤'
@@ -633,26 +502,17 @@ if (micBtn) {
 
 if (insertBtn) {
   insertBtn.addEventListener('click', async () => {
+    if (isRecording) stopRecording()
     const text = transcriptArea.value.trim()
     if (!text) return
     try {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
-      await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: (val) => {
-          const active = document.activeElement
-          if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) {
-            active.value += val
-            active.dispatchEvent(new Event('input', { bubbles: true }))
-            return true
-          }
-          return false
-        },
-        args: [text],
-      })
+      if (!tab?.id) throw new Error('No active tab')
+      const response = await chrome.tabs.sendMessage(tab.id, { type: 'INSERT_TEXT', text })
+      if (!response?.success) throw new Error('No editable field selected')
       showToast('✅ Inserted!')
     } catch {
-      showToast('⚠️ Click input field on page')
+      showToast('⚠️ Focus a text field on the page first')
     }
   })
 }
@@ -674,16 +534,17 @@ if (saveVaultBtn) {
     const newItem = {
       id: 'v_' + Date.now(),
       title: `Voice Note — ${new Date().toLocaleTimeString()}`,
+      notes: 'Saved locally from voice dictation',
       category: 'snippet',
       value: text,
       createdAt: new Date().toISOString(),
     }
 
     vaultItems.unshift(newItem)
+    vaultItems = vaultItems.slice(0, 500)
     await saveVaultItemsToStorage()
-    syncVaultItemToCloud(newItem)
 
-    showToast('🔐 Saved to Vault!')
+    showToast('🔒 Saved on this device')
     transcriptArea.value = ''
     currentTranscript = ''
     autoSaveDraft('')
@@ -699,12 +560,12 @@ async function speakText(text) {
   if (!text.trim()) return showToast('⚠️ Enter text first')
 
   stopAudio()
-  showToast('🔄 Synthesizing speech...')
+  showToast(activeEngine === 'browser' ? '🔄 Preparing device voice...' : '🔄 Preparing online speech...')
 
   const voiceId = ttsVoiceSelect ? ttsVoiceSelect.value : '21m00Tcm4TlvDq8ikWAM'
   const rate = ttsSpeedRange ? parseFloat(ttsSpeedRange.value) : 1.0
 
-  if (activeEngine === 'elevenlabs' && voiceId !== 'puter-sw') {
+  if (activeEngine === 'elevenlabs') {
     try {
       const response = await fetch(`${WEB_APP_URL}/api/tts`, {
         method: 'POST',
@@ -722,29 +583,30 @@ async function speakText(text) {
         activeAudio = new Audio(audioUrl)
         activeAudio.playbackRate = rate
         activeAudio.play()
-        showToast('▶ Playing ElevenLabs HD Speech!')
+        showToast('▶ Playing online speech')
         return
       }
     } catch (err) {
-      console.warn('ElevenLabs API request failed, falling back to Puter/Browser TTS')
+      console.warn('Online speech request failed; falling back to a device voice')
     }
   }
 
-  // Enhanced Fallback to Natural Browser Speech (filter robotic voices)
+  // Use an available browser voice when online synthesis is selected but unavailable.
+  // Device voice mode always stays local.
   window.speechSynthesis.cancel()
   const utterance = new SpeechSynthesisUtterance(text)
   utterance.rate = rate
   
   const voices = window.speechSynthesis.getVoices()
-  const swahiliVoice = voices.find((v) => v.lang.startsWith('sw'))
+  const swahiliVoice = currentLanguage.startsWith('sw') ? voices.find((v) => v.lang.startsWith('sw')) : null
   const naturalEnglishVoice = voices.find((v) =>
     (v.lang.startsWith('en') || v.lang.startsWith('en-')) &&
     (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Online'))
   )
-  const fallbackEnglishVoice = voices.find((v) => v.lang.startsWith('en'))
+  const fallbackEnglishVoice = currentLanguage.startsWith('en') ? voices.find((v) => v.lang.startsWith('en')) : null
 
   utterance.voice = swahiliVoice || naturalEnglishVoice || fallbackEnglishVoice || null
-  utterance.lang = utterance.voice ? utterance.voice.lang : 'sw-KE'
+  utterance.lang = utterance.voice ? utterance.voice.lang : currentLanguage
 
   window.speechSynthesis.speak(utterance)
   showToast(`▶ Playing Speech (${utterance.voice ? utterance.voice.name.slice(0, 20) : 'Native'})`)
@@ -772,6 +634,7 @@ if (stopSpeakBtn) {
 
 if (downloadTtsBtn) {
   downloadTtsBtn.addEventListener('click', async () => {
+    if (activeEngine !== 'elevenlabs') return showToast('Select Online voice to download an MP3')
     const text = ttsInput.value.trim()
     if (!text) return showToast('⚠️ Enter text first')
 
@@ -793,7 +656,7 @@ if (downloadTtsBtn) {
         a.href = url
         a.download = `mwijay-speech-${Date.now()}.mp3`
         a.click()
-        URL.revokeObjectURL(url)
+        setTimeout(() => URL.revokeObjectURL(url), 1000)
         showToast('✅ MP3 Downloaded!')
         return
       }
@@ -853,7 +716,7 @@ const ttsCollapsibleSection = document.getElementById('ttsCollapsibleSection')
 if (toggleTtsCollapseBtn && ttsCollapsibleSection) {
   toggleTtsCollapseBtn.addEventListener('click', () => {
     const isHidden = ttsCollapsibleSection.style.display === 'none'
-    ttsCollapsibleSection.style.display = isHidden ? 'block' : 'none'
+    ttsCollapsibleSection.style.display = isHidden ? 'flex' : 'none'
     toggleTtsCollapseBtn.textContent = isHidden ? '🔊 TTS (On)' : '🔊 TTS'
   })
 }
@@ -866,8 +729,16 @@ if (openAppBtn) {
 
 
 // INITIALIZE
-loadAuthSession()
+chrome.storage.sync.get('mwijay_lang', ({ mwijay_lang }) => {
+  if (mwijay_lang) {
+    currentLanguage = mwijay_lang.startsWith('en') ? 'en-US' : 'sw-TZ'
+    document.querySelectorAll('.lang-btn').forEach((button) => {
+      button.classList.toggle('active', button.dataset.lang === currentLanguage)
+    })
+    if (recognition) recognition.lang = currentLanguage
+  }
+})
+setupRecognition()
 loadVaultItems()
 loadDraft()
-setupRecognition()
 

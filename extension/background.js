@@ -5,22 +5,17 @@
 
 'use strict'
 
-const FIREBASE_CONFIG = {
-  apiKey: 'AIzaSyCMJDUMO1-LJWkNCLJF6i8Di9rG4aZJwFU',
-  projectId: 'mwijaytech-b9c98',
-}
-
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.removeAll(() => {
     chrome.contextMenus.create({
       id: 'mwijay-save-secret',
-      title: '🔐 Save Password / API Key to Mwijay Vault',
+      title: '🔐 Save selection to local Mwijay Vault',
       contexts: ['selection'],
     })
 
     chrome.contextMenus.create({
       id: 'mwijay-save-snippet',
-      title: '📋 Save Web Snippet to Mwijay Vault',
+      title: '📋 Save selection as local web clip',
       contexts: ['selection'],
     })
 
@@ -37,7 +32,7 @@ chrome.runtime.onInstalled.addListener(() => {
     })
   })
 
-  console.log('[Mwijay Tech Extension] Service worker initialized with password & secret context menus')
+  console.log('[Mwijay Tech Extension] Service worker initialized with local vault context menus')
 })
 
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
@@ -59,11 +54,11 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       createdAt: new Date().toISOString(),
     }
 
-    await saveVaultItemLocalAndCloud(newItem)
+    const saved = await saveVaultItemLocally(newItem)
 
     chrome.tabs.sendMessage(tab.id, {
       type: 'VAULT_ITEM_SAVED',
-      message: `🔐 ${category === 'api-key' ? 'API Key' : 'Password'} saved to Vault!`,
+      message: saved ? `🔒 ${category === 'api-key' ? 'API Key' : 'Password'} saved on this device.` : '⚠️ Could not save item. Local storage may be full.',
     })
 
   } else if (info.menuItemId === 'mwijay-save-snippet') {
@@ -77,11 +72,11 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       createdAt: new Date().toISOString(),
     }
 
-    await saveVaultItemLocalAndCloud(newItem)
+    const saved = await saveVaultItemLocally(newItem)
 
     chrome.tabs.sendMessage(tab.id, {
       type: 'VAULT_ITEM_SAVED',
-      message: '📋 Web snippet saved to Vault!',
+      message: saved ? '📋 Web clip saved on this device.' : '⚠️ Could not save clip. Local storage may be full.',
     })
 
   } else if (info.menuItemId === 'mwijay-read-aloud') {
@@ -96,38 +91,21 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   }
 })
 
-async function saveVaultItemLocalAndCloud(item) {
+async function saveVaultItemLocally(item) {
   try {
     const data = await chrome.storage.local.get(['mwijay_vault_items'])
     const existing = data.mwijay_vault_items || []
     existing.unshift(item)
-    await chrome.storage.local.set({ mwijay_vault_items: existing })
-
-    // Sync to Firestore Cloud
-    const doc = {
-      fields: {
-        userId: { stringValue: 'davie-mwijay-extension' },
-        title: { stringValue: item.title },
-        category: { stringValue: item.category },
-        content: { stringValue: item.value },
-        notes: { stringValue: item.notes || '' },
-        tags: { arrayValue: { values: [{ stringValue: 'extension' }, { stringValue: item.category }] } },
-        isPinned: { booleanValue: false },
-        createdAt: { stringValue: item.createdAt },
-        updatedAt: { stringValue: new Date().toISOString() },
-      },
-    }
-
-    const url = `https://firestore.googleapis.com/v1/projects/${FIREBASE_CONFIG.projectId}/databases/(default)/documents/vault_items?key=${FIREBASE_CONFIG.apiKey}`
-    await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(doc),
-    })
+    await chrome.storage.local.set({ mwijay_vault_items: existing.slice(0, 500) })
+    return true
   } catch (err) {
-    console.warn('[Background] Vault save fallback local:', err)
+    console.warn('[Background] Local vault save failed:', err)
+    return false
   }
 }
+
+/* Cloud sync intentionally disabled: vault values must never be sent to an
+ * unauthenticated, shared Firestore collection. */
 
 chrome.commands.onCommand.addListener((command) => {
   if (command === 'trigger-dictation') {
@@ -141,7 +119,7 @@ chrome.commands.onCommand.addListener((command) => {
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'OPEN_MIC_PERMISSION') {
-    chrome.tabs.create({ url: 'request_mic.html' })
+    chrome.tabs.create({ url: chrome.runtime.getURL('request_mic.html') })
     sendResponse({ success: true })
   }
   return true
