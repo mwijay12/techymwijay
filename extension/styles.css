@@ -1,7 +1,8 @@
-/* ─── Mwijay Tech Extension Styles ──────────────────────── */
+/* UI styles are loaded into the extension-owned Shadow DOM root. */
 
 .mwijay-mic-btn {
   position: fixed !important;
+  pointer-events: auto !important;
   z-index: 2147483647 !important;
   width: 28px !important;
   height: 28px !important;
@@ -43,6 +44,7 @@
 
 .mwijay-overlay {
   position: fixed !important;
+  pointer-events: auto !important;
   bottom: 80px !important;
   left: 50% !important;
   transform: translateX(-50%) !important;
@@ -171,6 +173,7 @@
 
 .mwijay-toast {
   position: fixed !important;
+  pointer-events: none !important;
   bottom: 20px !important;
   right: 20px !important;
   z-index: 2147483647 !important;

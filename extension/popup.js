@@ -394,10 +394,13 @@ function setupRecognition() {
     }
 
     if (final) {
-      currentTranscript += (currentTranscript ? ' ' : '') + final
+      currentTranscript += MwijayTextUtils.joinUtterance(currentTranscript, final)
+    }
+
+    if (interim) {
+      transcriptArea.value = currentTranscript + MwijayTextUtils.joinUtterance(currentTranscript, interim)
+    } else {
       transcriptArea.value = currentTranscript
-    } else if (interim) {
-      transcriptArea.value = currentTranscript + (currentTranscript ? ' ' : '') + interim
     }
 
     const hasText = transcriptArea.value.trim().length > 0
@@ -472,8 +475,12 @@ async function startRecording() {
   if (!recognition) return
   try {
     recognition.lang = currentLanguage
+    isRecording = true
+    if (micStatus) micStatus.textContent = 'Starting…'
     recognition.start()
   } catch (err) {
+    isRecording = false
+    if (micBtn) micBtn.classList.remove('recording')
     showToast('⚠️ Could not start speech recognition. Try again.')
   }
 }
@@ -490,6 +497,22 @@ function stopRecording() {
   if (micStatus) micStatus.textContent = currentTranscript ? `✅ Captured (Auto-Saved)` : 'Click mic or press Alt+M'
 }
 
+function finishRecording() {
+  if (!isRecording || !recognition) return Promise.resolve()
+  const current = recognition
+  return new Promise((resolve) => {
+    const previousOnEnd = current.onend
+    const timeout = setTimeout(resolve, 1200)
+    current.onend = (event) => {
+      clearTimeout(timeout)
+      current.onend = previousOnEnd
+      previousOnEnd?.call(current, event)
+      resolve()
+    }
+    stopRecording()
+  })
+}
+
 if (micBtn) {
   micBtn.addEventListener('click', () => {
     if (isRecording) stopRecording()
@@ -502,7 +525,7 @@ if (micBtn) {
 
 if (insertBtn) {
   insertBtn.addEventListener('click', async () => {
-    if (isRecording) stopRecording()
+    if (isRecording) await finishRecording()
     const text = transcriptArea.value.trim()
     if (!text) return
     try {
@@ -519,15 +542,21 @@ if (insertBtn) {
 
 if (copyBtn) {
   copyBtn.addEventListener('click', async () => {
+    if (isRecording) await finishRecording()
     const text = transcriptArea.value.trim()
     if (!text) return
-    await navigator.clipboard.writeText(text)
-    showToast('📋 Copied!')
+    try {
+      await navigator.clipboard.writeText(text)
+      showToast('📋 Copied!')
+    } catch {
+      showToast('⚠️ Copy failed')
+    }
   })
 }
 
 if (saveVaultBtn) {
   saveVaultBtn.addEventListener('click', async () => {
+    if (isRecording) await finishRecording()
     const text = transcriptArea.value.trim()
     if (!text) return
 
