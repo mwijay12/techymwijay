@@ -1,7 +1,7 @@
 /* ─── Mwijay Tech Extension Styles ──────────────────────── */
 
 .mwijay-mic-btn {
-  position: absolute !important;
+  position: fixed !important;
   z-index: 2147483647 !important;
   width: 28px !important;
   height: 28px !important;
@@ -187,4 +187,17 @@
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4) !important;
   animation: mwijay-slide-up 0.3s ease !important;
   font-family: 'Inter', -apple-system, sans-serif !important;
+}
+
+.mwijay-mic-btn:focus-visible,
+.mwijay-overlay button:focus-visible {
+  outline: 2px solid #c4b5fd !important;
+  outline-offset: 3px !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mwijay-mic-btn, .mwijay-overlay, .mwijay-recording-dot {
+    animation: none !important;
+    transition: none !important;
+  }
 }

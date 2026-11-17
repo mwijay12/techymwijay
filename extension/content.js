@@ -12,11 +12,18 @@ let overlayEl = null
 let recognition = null
 let isRecording = false
 let finalTranscript = ''
-let currentLanguage = 'sw-KE'
+let currentLanguage = 'sw-TZ'
 
 chrome.storage.sync.get('mwijay_lang', ({ mwijay_lang }) => {
   if (mwijay_lang && mwijay_lang !== 'auto') {
-    currentLanguage = mwijay_lang
+    currentLanguage = mwijay_lang.startsWith('en') ? 'en-US' : 'sw-TZ'
+  }
+})
+
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName === 'sync' && changes.mwijay_lang) {
+    const language = changes.mwijay_lang.newValue
+    currentLanguage = language && language.startsWith('en') ? 'en-US' : 'sw-TZ'
   }
 })
 
@@ -30,12 +37,13 @@ function isTextInput(el) {
   const tag = el.tagName?.toLowerCase()
   const type = el.type?.toLowerCase()
 
+  if (el.disabled || el.readOnly || el.getAttribute('aria-hidden') === 'true') return false
   if (tag === 'textarea') return true
   if (tag === 'input') {
-    const allowedTypes = ['text', 'search', 'email', 'url', 'tel', 'password', '', undefined]
+    const allowedTypes = ['text', 'search', 'email', 'url', 'tel', '', undefined]
     return allowedTypes.includes(type)
   }
-  if (el.contentEditable === 'true') return true
+  if (el.isContentEditable && el.getAttribute('contenteditable') !== 'false') return true
   return false
 }
 
@@ -63,8 +71,8 @@ function createMicButton(inputEl) {
   btn.title = 'Mwijay Tech: Click to dictate (Alt+M)'
   btn.setAttribute('aria-label', 'Start voice dictation')
 
-  btn.style.top = `${pos.top + pos.height / 2 - 14}px`
-  btn.style.left = `${pos.right - 34}px`
+  btn.style.top = `${inputEl.getBoundingClientRect().top + inputEl.getBoundingClientRect().height / 2 - 14}px`
+  btn.style.left = `${inputEl.getBoundingClientRect().right - 34}px`
 
   btn.addEventListener('click', (e) => {
     e.preventDefault()
@@ -118,6 +126,7 @@ function createOverlay() {
   overlayEl = overlay
 
   document.getElementById('mwijayOverlayClose')?.addEventListener('click', () => {
+    finalTranscript = ''
     stopDictation()
     removeOverlay()
   })
@@ -159,6 +168,8 @@ function startDictation(inputEl) {
   recognition.lang = currentLanguage
 
   createOverlay()
+  const languageBadge = overlayEl?.querySelector('.mwijay-lang-badge')
+  if (languageBadge) languageBadge.textContent = currentLanguage === 'en-US' ? '🇺🇸 EN' : '🇹🇿 SW'
 
   if (activeMicBtn) {
     activeMicBtn.classList.add('recording')
@@ -187,13 +198,10 @@ function startDictation(inputEl) {
 
     const textEl = document.getElementById('mwijayTranscriptText')
     if (textEl) {
-      const display = finalTranscript + (interim ? ` <span class="mwijay-interim">${interim}</span>` : '')
-      textEl.innerHTML = display || 'Listening...'
+      const display = finalTranscript + (interim ? ` ${interim}` : '')
+      textEl.textContent = display || 'Listening...'
     }
 
-    if (inputEl && isTextInput(inputEl)) {
-      insertTextIntoActiveInput(finalTranscript + (interim ? ' ' + interim : ''))
-    }
   }
 
   recognition.onerror = (event) => {
@@ -219,6 +227,10 @@ function startDictation(inputEl) {
   try {
     recognition.start()
   } catch (err) {
+    isRecording = false
+    if (activeMicBtn) activeMicBtn.classList.remove('recording')
+    removeOverlay()
+    showToast('⚠️ Could not start dictation. Check microphone access and try again.')
     console.error('[Mwijay Extension] Start error:', err)
   }
 }
@@ -226,7 +238,7 @@ function startDictation(inputEl) {
 function stopDictation() {
   isRecording = false
   if (recognition) {
-    recognition.stop()
+    try { recognition.stop() } catch {}
     recognition = null
   }
 
@@ -237,16 +249,27 @@ function stopDictation() {
 
 function insertTextIntoActiveInput(text) {
   const el = activeInput || document.activeElement
-  if (!el || !isTextInput(el)) return
+  if (!text || !el || !isTextInput(el)) return false
 
   if (el.isContentEditable) {
-    el.innerText = text
+    el.focus()
+    const inserted = document.execCommand('insertText', false, text)
+    if (!inserted) el.append(document.createTextNode(text))
   } else {
-    el.value = text
+    const start = Number.isInteger(el.selectionStart) ? el.selectionStart : el.value.length
+    const end = Number.isInteger(el.selectionEnd) ? el.selectionEnd : start
+    const nextValue = `${el.value.slice(0, start)}${text}${el.value.slice(end)}`
+    const prototype = el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype
+    const setter = Object.getOwnPropertyDescriptor(prototype, 'value')?.set
+    if (setter) setter.call(el, nextValue)
+    else el.value = nextValue
+    const caret = start + text.length
+    try { el.setSelectionRange(caret, caret) } catch {}
   }
 
-  el.dispatchEvent(new Event('input', { bubbles: true }))
+  el.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: text }))
   el.dispatchEvent(new Event('change', { bubbles: true }))
+  return true
 }
 
 function showToast(message) {
@@ -260,6 +283,16 @@ function showToast(message) {
 
   setTimeout(() => toast.remove(), 2500)
 }
+
+function repositionMicButton() {
+  if (!activeMicBtn || !activeInput?.isConnected) return
+  const rect = activeInput.getBoundingClientRect()
+  activeMicBtn.style.top = `${rect.top + rect.height / 2 - 14}px`
+  activeMicBtn.style.left = `${rect.right - 34}px`
+}
+
+window.addEventListener('scroll', repositionMicButton, true)
+window.addEventListener('resize', repositionMicButton)
 
 document.addEventListener('focusin', (e) => {
   if (isTextInput(e.target)) {
@@ -284,12 +317,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     activeInput = isTextInput(focused) ? focused : null
     startDictation(activeInput)
     sendResponse({ success: true })
+  } else if (message.type === 'INSERT_TEXT') {
+    const success = insertTextIntoActiveInput(message.text || '');
+    sendResponse({ success });
   } else if (message.type === 'READ_ALOUD') {
     const text = message.text || window.getSelection()?.toString()
     if (text) {
       window.speechSynthesis.cancel()
       const u = new SpeechSynthesisUtterance(text)
-      u.lang = 'sw-KE'
+      u.lang = currentLanguage
       u.rate = 0.95
       window.speechSynthesis.speak(u)
       showToast('🔊 Reading text aloud...')
