@@ -3,7 +3,7 @@
   "name": "Mwijay Tech \u2014 Voice Studio & Local Vault",
   "short_name": "Mwijay Voice",
   "description": "Swahili-English voice dictation, read-aloud, and a device-local vault for saved snippets and secrets.",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "author": "Davie Mwijay",
   "icons": {
     "16": "icons/icon16.png",
@@ -34,10 +34,8 @@
         "<all_urls>"
       ],
       "js": [
+        "text-utils.js",
         "content.js"
-      ],
-      "css": [
-        "styles.css"
       ],
       "run_at": "document_idle"
     }
@@ -64,5 +62,15 @@
   },
   "host_permissions": [
     "https://techymwijay.vercel.app/*"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "styles.css"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
   ]
 }

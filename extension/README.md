@@ -4,7 +4,8 @@ A Manifest V3 extension for Chrome and compatible Chromium browsers. The extensi
 
 ## Features
 
-- **Voice dictation:** use the toolbar popup or `Alt+M` (`Command+Shift+M` on macOS). On webpages, focus an editable field and use the injected microphone or shortcut; review the transcript and choose **Insert Text** to add it at the caret.
+- **Voice dictation:** use the toolbar popup or `Alt+M` (`Command+Shift+M` on macOS). On webpages, focus an editable field and use the injected microphone or shortcut; review the transcript and choose **Insert Text** to add it at the remembered caret/selection. Text joining cleans blank/noise results, avoids punctuation spacing errors, and capitalizes sentence starts.
+- **Isolated page UI:** the inline mic and transcript overlay live in a Shadow DOM root, so host-page CSS and IDs are less likely to break or collide with extension controls.
 - **Read aloud:** select text, then use the right-click menu. Browser speech voices and languages vary by platform.
 - **Local vault and clips:** save items from the popup or a page selection. Items stay in this browser profile using `chrome.storage.local`; they are **not encrypted and are not synced to an account or cloud**. Do not use this as a password manager for sensitive credentials.
 - **Text to speech:** use a local browser voice, or request online speech from the Mwijay Tech web service. Online synthesis requires internet access and is separate from local vault storage.
@@ -34,3 +35,11 @@ After changing extension files, reload the extension from the extensions page.
 - Right-click a selection for **Save selection**, **Save as web clip**, or **Read aloud**.
 
 Built by Davie Mwijay — Dar es Salaam, Tanzania.
+
+## Research and next opportunities
+
+The dictation logic is informed by patterns in [Murmur](https://github.com/wankdanker/murmur): focused edit targets, a remembered rich-text selection, browser-native editing for framework compatibility, and unit tests around transcript joining. The small `text-utils.js` helper is this project's own implementation; it does not import Murmur code. Run its regression tests with `npm run test:extension`.
+
+Murmur also demonstrates a larger future option: persistent, on-device speech recognition through an MV3 offscreen document and downloaded models. That could make dictation more private and reliable when browser speech recognition is unavailable, but model size, WebGPU/WASM performance, Chrome permissions, and **Swahili accuracy** need a measured prototype before replacing the lightweight browser engine. A Chromium E2E suite for normal inputs, rich editors, shadow-root editors, and iframes is another high-value next step.
+
+Frameworks such as [WXT](https://github.com/wxt-dev/wxt) and [Plasmo](https://github.com/PlasmoHQ/plasmo) can help with build pipelines, packaging, and cross-browser testing if the extension grows into multiple entry points. For the current small, plain-MV3 extension, a framework migration would add churn without fixing a user-facing problem, so it is deliberately not part of this pass.
